@@ -1,6 +1,6 @@
 package io.github.codingonapotato;
 
-public class Main {
+public class Illuminactivity {
     public static void main(String[] args) {
         System.out.println("Hello world!");
     }

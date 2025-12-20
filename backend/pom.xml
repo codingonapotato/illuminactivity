@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>io.github.codingonapotato.Main</mainClass>
+                            <mainClass>io.github.codingonapotato.Illuminactivity</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
