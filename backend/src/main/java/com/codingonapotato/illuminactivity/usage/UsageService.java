@@ -1,8 +1,8 @@
 package com.codingonapotato.illuminactivity.usage;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.category.Category;
 
