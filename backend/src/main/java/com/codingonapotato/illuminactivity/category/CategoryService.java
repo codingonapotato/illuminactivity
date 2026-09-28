@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface CategoryService {
     List<Category> getCategories();
-    void createCategory(String name, String color);
-    void editCategory(Category target, String newName, String newColor);
+    void createCategory(String name, String colour);
+    void editCategory(Category target, String newName, String newColour);
     void deleteCategory(Category target);
 }
