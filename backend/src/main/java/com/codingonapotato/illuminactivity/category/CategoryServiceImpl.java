@@ -6,6 +6,12 @@ import org.springframework.stereotype.Service;
 
 @Service 
 public class CategoryServiceImpl implements CategoryService {
+    private CategoryRepository repository;
+    
+    public CategoryServiceImpl(CategoryRepository repository) {
+        this.repository = repository;
+    }
+
     @Override
     public List<Category> getCategories() {
         return new ArrayList<>();
