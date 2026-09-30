@@ -6,8 +6,12 @@ import java.util.Objects;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity 
+@Table(
+    name="ApplicationCategoryUsage"
+)
 public class Usage {
     @EmbeddedId
     private PK pk;
@@ -21,31 +25,13 @@ public class Usage {
         this.endTime = endTime;
     }
 
-    public String getPath() {
-        return this.pk.path;
+    public PK getPK() {
+        return pk;
     }
 
     // TODO: Add validation logic
-    public void setPath(String path) {
-        this.pk.path = path;
-    }
-
-    public String getCategory() {
-        return this.pk.category;
-    }
-
-    // TODO: Add validation logic
-    public void setCategory(String category) {
-        this.pk.category = category;
-    }
-
-    public LocalDateTime getStartTime() {
-        return this.pk.startTime;
-    }
-    
-    // TODO: Add validation logic
-    public void setStartTime(LocalDateTime startTime) {
-        this.pk.startTime = startTime;
+    public void setPK(PK pk) {
+        this.pk = pk;
     }
 
     public LocalDateTime getEndTime() {
@@ -70,6 +56,33 @@ public class Usage {
         }
 
         private PK() {}
+
+        public String getPath() {
+            return this.path;
+        }
+
+        // TODO: Add validation logic
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getCategory() {
+            return this.category;
+        }
+
+        // TODO: Add validation logic
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
+        public LocalDateTime getStartTime() {
+            return this.startTime;
+        }
+        
+        // TODO: Add validation logic
+        public void setStartTime(LocalDateTime startTime) {
+            this.startTime = startTime;
+        }
 
         @Override
         public boolean equals(Object o) {
