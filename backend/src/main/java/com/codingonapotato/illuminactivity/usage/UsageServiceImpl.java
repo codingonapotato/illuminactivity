@@ -10,7 +10,12 @@ import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
 public class UsageServiceImpl implements UsageService {
-    
+    private UsageRepository repository;
+
+    public UsageServiceImpl(UsageRepository repository) {
+        this.repository = repository;
+    }
+
     @Override 
     public List<Usage> getUsage(LocalDate date) {
         return new ArrayList<>();
