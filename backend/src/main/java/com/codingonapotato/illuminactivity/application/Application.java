@@ -1,8 +1,13 @@
 package com.codingonapotato.illuminactivity.application;
 
+import java.util.List;
+import com.codingonapotato.illuminactivity.category.Category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;;
 
 @Entity 
 public class Application {
@@ -13,6 +18,14 @@ public class Application {
     private String productName;
     
     private Boolean tracked;
+
+    @ManyToMany
+    @JoinTable(
+        name = "ApplicationHasCategory",
+        joinColumns = @JoinColumn(name = "path"),
+        inverseJoinColumns = @JoinColumn(name = "category")
+    )
+    private List<Category> categories;
 
     protected Application() {}
 
