@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 public class Category {
     @Id 
     private String name;
+    
     private String colour;
 
     protected Category() {}

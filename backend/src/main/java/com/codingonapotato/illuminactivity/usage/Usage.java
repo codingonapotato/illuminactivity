@@ -3,6 +3,7 @@ package com.codingonapotato.illuminactivity.usage;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -15,6 +16,8 @@ import jakarta.persistence.Table;
 public class Usage {
     @EmbeddedId
     private PK pk;
+
+    @Column(name = "end_time")
     private LocalDateTime endTime;
 
     protected Usage() {}
@@ -46,7 +49,10 @@ public class Usage {
     @Embeddable 
     public static class PK implements Serializable {
         private String path;
+        
         private String category;
+
+        @Column(name = "start_time")
         private LocalDateTime startTime;
 
         public PK(String path, String category, LocalDateTime startTime) {
