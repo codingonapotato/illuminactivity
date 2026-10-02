@@ -6,6 +6,12 @@ import org.springframework.stereotype.Service;
 
 @Service 
 public class ApplicationServiceImpl implements ApplicationService {
+    private ApplicationRepository repository;
+    
+    public ApplicationServiceImpl(ApplicationRepository repository) {
+        this.repository = repository;
+    }
+    
     @Override 
     public List<Application> getTrackedApplications() {
         return new ArrayList<>();
