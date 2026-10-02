@@ -35,7 +35,7 @@ public class Usage {
     }
 
     public LocalDateTime getEndTime() {
-        return this.pk.startTime;
+        return this.endTime;
     }
     
     // TODO: Add validation logic
