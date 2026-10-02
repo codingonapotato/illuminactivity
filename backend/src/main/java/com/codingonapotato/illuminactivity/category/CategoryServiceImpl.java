@@ -14,21 +14,27 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getCategories() {
-        return new ArrayList<>();
+        List<Category> categories = new ArrayList<>();
+        repository.findAll().forEach(categories::add);
+
+        return categories;
     }
 
     @Override
     public void createCategory(String name, String color) {
-        return;
+        Category category = new Category(name, color);
+        repository.save(category);
     }
 
     @Override
     public void editCategory(Category target, String newName, String newColor) {
-        return;
+        target.setName(newName);
+        target.setColour(newColor);
+        repository.save(target);
     }
 
     @Override
     public void deleteCategory(Category target) {
-        return;
+        repository.delete(target);
     }
 }
