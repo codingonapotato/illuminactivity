@@ -1,8 +1,10 @@
 package com.codingonapotato.illuminactivity.application;
 
+import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity 
 public class Application {
@@ -13,6 +15,9 @@ public class Application {
     private String productName;
     
     private Boolean tracked;
+
+    @OneToMany(mappedBy = "application")
+    private List<ApplicationHasCategory> applicationCategories;
 
     protected Application() {}
 

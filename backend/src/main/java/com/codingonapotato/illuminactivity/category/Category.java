@@ -1,7 +1,10 @@
 package com.codingonapotato.illuminactivity.category;
 
+import java.util.List;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity 
 public class Category {
@@ -9,6 +12,9 @@ public class Category {
     private String name;
     
     private String colour;
+
+    @OneToMany(mappedBy = "category")
+    private List<ApplicationHasCategory> categoryApplications;
 
     protected Category() {}
 

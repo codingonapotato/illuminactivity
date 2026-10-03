@@ -3,10 +3,15 @@ package com.codingonapotato.illuminactivity.usage;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 @Entity 
@@ -17,7 +22,15 @@ public class Usage {
     @EmbeddedId
     private PK pk;
 
-    @Column(name = "end_time")
+    @ManyToOne(optional = false)
+    @MapsId("applicationHasCategoryPK")
+    @JoinColumns({
+        @JoinColumn(name = "path"),
+        @JoinColumn(name = "category")
+    })
+    private ApplicationHasCategory applicationCategories;
+
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
     protected Usage() {}
@@ -48,37 +61,25 @@ public class Usage {
 
     @Embeddable 
     public static class PK implements Serializable {
-        private String path;
-        
-        private String category;
+        private ApplicationHasCategory.PK applicationHasCategoryPK;
 
         @Column(name = "start_time")
         private LocalDateTime startTime;
 
-        public PK(String path, String category, LocalDateTime startTime) {
-            this.path = path;
-            this.category = category;
+        public PK(ApplicationHasCategory.PK applicationHasCategoryPK, LocalDateTime startTime) {
+            this.applicationHasCategoryPK = applicationHasCategoryPK;
             this.startTime = startTime;
         }
 
         private PK() {}
 
-        public String getPath() {
-            return this.path;
+        public ApplicationHasCategory.PK getApplicationHasCategoryPK() {
+            return this.applicationHasCategoryPK;
         }
 
         // TODO: Add validation logic
-        public void setPath(String path) {
-            this.path = path;
-        }
-
-        public String getCategory() {
-            return this.category;
-        }
-
-        // TODO: Add validation logic
-        public void setCategory(String category) {
-            this.category = category;
+        public void setApplicationHasCategoryPK(ApplicationHasCategory.PK pk) {
+            this.applicationHasCategoryPK = pk;
         }
 
         public LocalDateTime getStartTime() {
@@ -97,14 +98,13 @@ public class Usage {
             else if (o == null || getClass() != o.getClass()) return false;
             
             PK pk = (PK) o;
-            return Objects.equals(path, pk.path) && 
-                    Objects.equals(category, pk.category) && 
+            return Objects.equals(applicationHasCategoryPK, pk.applicationHasCategoryPK) &&
                     Objects.equals(startTime, pk.startTime);
         }
 
         @Override 
         public int hashCode() {
-            return Objects.hash(path, category, startTime);
+            return Objects.hash(applicationHasCategoryPK, startTime);
         }
     }
 }
