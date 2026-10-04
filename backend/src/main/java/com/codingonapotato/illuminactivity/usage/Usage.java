@@ -28,7 +28,7 @@ public class Usage {
         @JoinColumn(name = "path"),
         @JoinColumn(name = "category")
     })
-    private ApplicationHasCategory applicationCategories;
+    private ApplicationHasCategory applicationCategory;
 
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
