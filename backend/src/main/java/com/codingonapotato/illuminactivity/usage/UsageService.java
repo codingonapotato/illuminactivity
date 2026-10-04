@@ -10,6 +10,6 @@ public interface UsageService {
     List<Usage> getUsage(LocalDate date);
     List<Usage> getUsage(LocalDateTime start, LocalDateTime end);
     void addUsage(Application app, Category category, LocalDateTime start, LocalDateTime end);
-    void updateUsage(Application app, Category category, LocalDateTime start, LocalDateTime end);
-    void deleteUsage(Application app, Category category, LocalDateTime start);
+    void updateUsage(Usage usage, LocalDateTime start, LocalDateTime end);
+    void deleteUsage(Usage usage);
 }
