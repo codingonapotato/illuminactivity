@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.codingonapotato.illuminactivity.application.Application;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
@@ -18,26 +19,45 @@ public class UsageServiceImpl implements UsageService {
 
     @Override 
     public List<Usage> getUsage(LocalDate date) {
-        return new ArrayList<>();
+        List<Usage> usageList = new ArrayList<>();
+        repository.findByDate(date).forEach(usageList::add);
+        return usageList;
     }
 
     @Override
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
-        return new ArrayList<>();
+        List<Usage> usageList = new ArrayList<>();
+        repository.findByDateBetween(start, end).forEach(usageList::add);
+        return usageList;
     }
 
     @Override
     public void addUsage(Application app, Category category, LocalDateTime start, LocalDateTime end) {
-        return;
+        ApplicationHasCategory applicationHasCategory = new ApplicationHasCategory(app, category);
+        Usage.PK usagePK = new Usage.PK(applicationHasCategory.getPk(), start);
+        Usage usage = new Usage(usagePK, end);
+
+        repository.save(usage);
     }
 
     @Override 
-    public void updateUsage(Application app, Category category, LocalDateTime start, LocalDateTime end) {
-        return;
+    public void updateUsage(Usage usage, LocalDateTime start, LocalDateTime end) {
+        usage.setEndTime(end);
+        
+        if (usage.getPK().getStartTime().equals(start)) {
+            repository.save(usage);
+            return;
+        }
+
+        repository.delete(usage);
+        repository.flush();
+
+        Usage.PK usagePK = new Usage.PK(usage.getPK().getApplicationHasCategoryPK(), start);
+        repository.save(new Usage(usagePK, end));
     }
 
     @Override 
-    public void deleteUsage(Application app, Category category, LocalDateTime start) {
-        return;
+    public void deleteUsage(Usage usage) {
+        repository.delete(usage);
     }
 }
