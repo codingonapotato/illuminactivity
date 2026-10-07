@@ -14,9 +14,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     
     @Override 
     public List<Application> getTrackedApplications() {
-        return new ArrayList<>();
+        return repository.findByTrackedIsTrue();
     }
 
+    // TODO: To be tackled at later stage of KAN-15
     @Override
     public List<Application> getAllApplications() {
         return new ArrayList<>();
@@ -24,6 +25,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public void setApplicationTracked(Application target, Boolean tracked) {
-        return;
+        target.setTracked(tracked);
+        repository.save(target);
     }
 }
