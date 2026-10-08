@@ -20,14 +20,15 @@ public class UsageServiceImpl implements UsageService {
     @Override 
     public List<Usage> getUsage(LocalDate date) {
         List<Usage> usageList = new ArrayList<>();
-        repository.findByDate(date).forEach(usageList::add);
+        LocalDateTime startTime = LocalDateTime.from(date);
+        repository.findAllByStartTime(startTime).forEach(usageList::add);
         return usageList;
     }
 
     @Override
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
         List<Usage> usageList = new ArrayList<>();
-        repository.findByDateBetween(start, end).forEach(usageList::add);
+        repository.findAllByStartAndEndTimeBetween(start, end).forEach(usageList::add);
         return usageList;
     }
 
