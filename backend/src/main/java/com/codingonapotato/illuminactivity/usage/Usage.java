@@ -35,9 +35,9 @@ public class Usage {
 
     protected Usage() {}
 
-    // TODO: Add validation logic
-    public Usage(PK pk, LocalDateTime endTime) {
-        this.pk = pk;
+    public Usage(ApplicationHasCategory applicationHasCategory, LocalDateTime startTime, LocalDateTime endTime) {;
+        this.applicationCategory = applicationHasCategory;
+        this.pk = new PK(applicationHasCategory.getPk(), startTime);
         this.endTime = endTime;
     }
 
@@ -48,6 +48,10 @@ public class Usage {
     // TODO: Add validation logic
     public void setPK(PK pk) {
         this.pk = pk;
+    }
+
+    public ApplicationHasCategory getApplicationCategory() {
+        return this.applicationCategory;
     }
 
     public LocalDateTime getEndTime() {

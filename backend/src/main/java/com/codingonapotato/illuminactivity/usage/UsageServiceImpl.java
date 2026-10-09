@@ -7,38 +7,41 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
 import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
 public class UsageServiceImpl implements UsageService {
-    private UsageRepository repository;
+    private UsageRepository usageRepository;
+    private ApplicationHasCategoryRepository applicationCategoryRepository;
 
-    public UsageServiceImpl(UsageRepository repository) {
-        this.repository = repository;
+    public UsageServiceImpl(UsageRepository usageRepository, ApplicationHasCategoryRepository applicationCategoryRepository) {
+        this.usageRepository = usageRepository;
+        this.applicationCategoryRepository = applicationCategoryRepository;
     }
 
     @Override 
     public List<Usage> getUsage(LocalDate date) {
         List<Usage> usageList = new ArrayList<>();
         LocalDateTime startTime = LocalDateTime.from(date);
-        repository.findAllByStartTime(startTime).forEach(usageList::add);
+        usageRepository.findAllByStartTime(startTime).forEach(usageList::add);
         return usageList;
     }
 
     @Override
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
         List<Usage> usageList = new ArrayList<>();
-        repository.findAllByStartAndEndTimeBetween(start, end).forEach(usageList::add);
+        usageRepository.findAllByStartAndEndTimeBetween(start, end).forEach(usageList::add);
         return usageList;
     }
 
     @Override
     public void addUsage(Application app, Category category, LocalDateTime start, LocalDateTime end) {
-        ApplicationHasCategory applicationHasCategory = new ApplicationHasCategory(app, category);
-        Usage.PK usagePK = new Usage.PK(applicationHasCategory.getPk(), start);
-        Usage usage = new Usage(usagePK, end);
+        ApplicationHasCategory.PK applicationCategoryPK = new ApplicationHasCategory.PK(app.getPath(), category.getName());
+        ApplicationHasCategory applicationHasCategory = applicationCategoryRepository.getReferenceById(applicationCategoryPK);
+        Usage usage = new Usage(applicationHasCategory, start, end);
 
-        repository.save(usage);
+        usageRepository.save(usage);
     }
 
     @Override 
@@ -46,19 +49,18 @@ public class UsageServiceImpl implements UsageService {
         usage.setEndTime(end);
         
         if (usage.getPK().getStartTime().equals(start)) {
-            repository.save(usage);
+            usageRepository.save(usage);
             return;
         }
 
-        repository.delete(usage);
-        repository.flush();
+        usageRepository.delete(usage);
+        usageRepository.flush();
 
-        Usage.PK usagePK = new Usage.PK(usage.getPK().getApplicationHasCategoryPK(), start);
-        repository.save(new Usage(usagePK, end));
+        usageRepository.save(new Usage(usage.getApplicationCategory(), start, end));
     }
 
     @Override 
     public void deleteUsage(Usage usage) {
-        repository.delete(usage);
+        usageRepository.delete(usage);
     }
 }
