@@ -2,6 +2,7 @@ package com.codingonapotato.illuminactivity.usage;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,9 @@ public class UsageServiceImpl implements UsageService {
     @Override 
     public List<Usage> getUsage(LocalDate date) {
         List<Usage> usageList = new ArrayList<>();
-        LocalDateTime startTime = LocalDateTime.from(date);
-        usageRepository.findAllByStartTime(startTime).forEach(usageList::add);
+        LocalDateTime startTime = LocalDateTime.of(date, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+        usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime).forEach(usageList::add);
         return usageList;
     }
 
