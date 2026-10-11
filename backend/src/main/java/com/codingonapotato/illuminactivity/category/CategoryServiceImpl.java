@@ -3,6 +3,7 @@ package com.codingonapotato.illuminactivity.category;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import com.codingonapotato.illuminactivity.category.exception.DuplicateCategoryException;
 
 @Service 
 public class CategoryServiceImpl implements CategoryService {
@@ -22,12 +23,16 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void createCategory(String name, String color) {
+        if (repository.existsById(name))
+            throw new DuplicateCategoryException(name);
         Category category = new Category(name, color);
         repository.save(category);
     }
 
     @Override
     public void editCategory(Category target, String newName, String newColor) {
+        if (repository.existsById(newName))
+            throw new DuplicateCategoryException(newName);
         target.setName(newName);
         target.setColour(newColor);
         repository.save(target);
