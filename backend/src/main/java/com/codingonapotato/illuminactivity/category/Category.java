@@ -26,6 +26,7 @@ public class Category {
     protected Category() {}
 
     public Category(String name, String colour) {
+        validateInput(name, colour);
         this.name = name;
         this.colour = colour;
     }
