@@ -33,9 +33,17 @@ public class CategoryServiceImpl implements CategoryService {
     public void editCategory(Category target, String newName, String newColor) {
         if (repository.existsById(newName))
             throw new DuplicateCategoryException(newName);
-        target.setName(newName);
+        
         target.setColour(newColor);
-        repository.save(target);
+        if (target.getName().equals(newName)) {
+            repository.save(target);
+            return;
+        }
+
+        repository.delete(target);
+        repository.flush();
+
+        repository.save(new Category(newName, newColor));
     }
 
     @Override
