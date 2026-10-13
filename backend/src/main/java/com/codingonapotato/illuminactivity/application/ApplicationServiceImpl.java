@@ -21,7 +21,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         return applicationRepository.findByTrackedIsTrue();
     }
 
-    // TODO: To be tackled at later stage of KAN-15
+    // TODO: Postponed to KAN-17
     @Override
     public List<Application> getAllApplications() {
         return new ArrayList<>();
@@ -31,6 +31,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     public void addCategory(Application target, Category category) {
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
         applicationCategoryRepository.save(applicationCategory);
+        target.getApplicationCategories().add(applicationCategory);
     }
 
     @Override
@@ -38,6 +39,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), category.getName());
         ApplicationHasCategory applicationCategory = applicationCategoryRepository.findById(pk).get();
         applicationCategoryRepository.delete(applicationCategory);
+        target.getApplicationCategories().remove(applicationCategory);
     }
 
     @Override
