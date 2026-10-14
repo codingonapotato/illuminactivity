@@ -1,5 +1,6 @@
 package com.codingonapotato.illuminactivity.application;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import com.codingonapotato.illuminactivity.application.exception.InvalidPathException;
@@ -69,6 +70,7 @@ public class Application {
     private static void validatePath(String path) {
         if (path.length() > MAX_PATH_LENGTH)
             throw new InvalidPathException();
+        Path.of(path);       
     }
 
     private static void validateProductName(String productName) {
