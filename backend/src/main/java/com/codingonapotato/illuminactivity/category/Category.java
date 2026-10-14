@@ -45,7 +45,7 @@ public class Category {
     }
     
     public void setColour(String nextColour) {
-        validateColour(colour);
+        validateColour(nextColour);
         this.colour = nextColour;
     }
 
