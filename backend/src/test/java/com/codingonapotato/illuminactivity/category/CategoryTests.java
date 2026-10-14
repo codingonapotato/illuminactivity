@@ -1,6 +1,7 @@
 package com.codingonapotato.illuminactivity.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Collections;
@@ -67,6 +68,54 @@ public class CategoryTests {
             } catch (Exception e) {
                 assertTrue(e instanceof InvalidColourException);
             }
+        }
+    }
+
+    @Nested
+    class SetNameTests {
+        @Test
+        @DisplayName("should update name with a valid value")
+        void shouldSetValidName() {
+            Category category = new Category("Bing Chilling", "#FFFFFF");
+            String name = "Updated Name";
+
+            category.setName(name);
+
+            assertEquals(name, category.getName());
+        }
+
+        @Test
+        @DisplayName("should fail with exception due to an invalid name")
+        void shouldFailWithInvalidName() {
+            Category category = new Category("Bing Chilling", "#FFFFFF");
+            String originalName = category.getName();
+
+            assertThrows(InvalidNameException.class, () -> category.setName("Bad"));
+            assertEquals(originalName, category.getName());
+        }
+    }
+
+    @Nested
+    class SetColourTests {
+        @Test
+        @DisplayName("should update colour with a valid value")
+        void shouldSetValidColour() {
+            Category category = new Category("Bing Chilling", "#FFFFFF");
+            String colour = "#000000";
+
+            category.setColour(colour);
+
+            assertEquals(colour, category.getColour());
+        }
+
+        @Test
+        @DisplayName("should fail with exception due to an invalid colour")
+        void shouldFailWithInvalidColour() {
+            Category category = new Category("Bing Chilling", "#FFFFFF");
+            String originalColour = category.getColour();
+
+            assertThrows(InvalidColourException.class, () -> category.setColour("white"));
+            assertEquals(originalColour, category.getColour());
         }
     }
 }
