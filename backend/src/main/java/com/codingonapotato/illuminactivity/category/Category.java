@@ -36,6 +36,7 @@ public class Category {
     }
 
     public void setName(String newName) {
+        validateName(newName);
         this.name = newName;
     }
 
@@ -44,6 +45,7 @@ public class Category {
     }
     
     public void setColour(String nextColour) {
+        validateColour(colour);
         this.colour = nextColour;
     }
 
