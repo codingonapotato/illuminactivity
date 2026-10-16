@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
@@ -36,6 +37,7 @@ public class Usage {
     protected Usage() {}
 
     public Usage(ApplicationHasCategory applicationHasCategory, LocalDateTime startTime, LocalDateTime endTime) {;
+        validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
         this.applicationCategory = applicationHasCategory;
         this.pk = new PK(applicationHasCategory.getPk(), startTime);
         this.endTime = endTime;
@@ -43,11 +45,6 @@ public class Usage {
 
     public PK getPK() {
         return pk;
-    }
-
-    // TODO: Add validation logic
-    public void setPK(PK pk) {
-        this.pk = pk;
     }
 
     public ApplicationHasCategory getApplicationCategory() {
@@ -58,9 +55,18 @@ public class Usage {
         return this.endTime;
     }
     
-    // TODO: Add validation logic
     public void setEndTime(LocalDateTime endTime) {
+        validateEndTimeIsEqualOrAfterStartTime(pk.startTime, endTime);
         this.endTime = endTime;
+    }
+
+    private static void validateEndTimeIsEqualOrAfterStartTime(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime.isAfter(endTime))
+            throw new UsageDateTimeException();
+    }
+
+    public static void validateInput(ApplicationHasCategory applicationHasCategory, LocalDateTime startTime, LocalDateTime endTime) {
+        validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
     }
 
     @Embeddable 
@@ -81,18 +87,8 @@ public class Usage {
             return this.applicationHasCategoryPK;
         }
 
-        // TODO: Add validation logic
-        public void setApplicationHasCategoryPK(ApplicationHasCategory.PK pk) {
-            this.applicationHasCategoryPK = pk;
-        }
-
         public LocalDateTime getStartTime() {
             return this.startTime;
-        }
-        
-        // TODO: Add validation logic
-        public void setStartTime(LocalDateTime startTime) {
-            this.startTime = startTime;
         }
 
         @Override
