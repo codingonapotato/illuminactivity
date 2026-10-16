@@ -58,24 +58,15 @@ public class ApplicationHasCategory {
             this.category = category;
         }
 
+        @SuppressWarnings("unused")
         private PK() {}
 
         public String getPath() { 
             return path; 
         }
 
-        // TODO: Add validation logic
-        public void setPath(String path) {
-            this.path = path;
-        }
-
         public String getCategory() { 
             return category; 
-        }
-
-        // TODO: Add validation logic
-        public void setCategory(String category) {
-            this.category = category;
         }
 
         @Override

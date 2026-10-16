@@ -81,6 +81,7 @@ public class Usage {
             this.startTime = startTime;
         }
 
+        @SuppressWarnings("unused")
         private PK() {}
 
         public ApplicationHasCategory.PK getApplicationHasCategoryPK() {
