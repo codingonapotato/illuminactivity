@@ -60,7 +60,7 @@ public class Usage {
         this.endTime = endTime;
     }
 
-    private static void validateEndTimeIsEqualOrAfterStartTime(LocalDateTime startTime, LocalDateTime endTime) {
+    public static void validateEndTimeIsEqualOrAfterStartTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime.isAfter(endTime))
             throw new UsageDateTimeException();
     }

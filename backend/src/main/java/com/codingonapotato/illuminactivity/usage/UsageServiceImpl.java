@@ -32,6 +32,8 @@ public class UsageServiceImpl implements UsageService {
 
     @Override
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
+        Usage.validateEndTimeIsEqualOrAfterStartTime(start, end);
+
         List<Usage> usageList = new ArrayList<>();
         usageRepository.findAllByStartAndEndTimeBetween(start, end).forEach(usageList::add);
         return usageList;
