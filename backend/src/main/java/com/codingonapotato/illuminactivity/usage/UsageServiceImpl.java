@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
@@ -48,7 +49,8 @@ public class UsageServiceImpl implements UsageService {
         usageRepository.save(usage);
     }
     
-    @Override  
+    @Override 
+    @Transactional  
     public void updateUsage(Usage usage, LocalDateTime start, LocalDateTime end) {
         Usage.validateEndTimeIsEqualOrAfterStartTime(start, end);
         
