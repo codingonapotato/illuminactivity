@@ -47,12 +47,13 @@ public class UsageServiceImpl implements UsageService {
 
         usageRepository.save(usage);
     }
-
-    @Override 
+    
+    @Override  
     public void updateUsage(Usage usage, LocalDateTime start, LocalDateTime end) {
-        usage.setEndTime(end);
+        Usage.validateEndTimeIsEqualOrAfterStartTime(start, end);
         
         if (usage.getPK().getStartTime().equals(start)) {
+            usage.setEndTime(end);
             usageRepository.save(usage);
             return;
         }
