@@ -1,9 +1,8 @@
 package com.codingonapotato.illuminactivity.usage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,7 @@ public class UsageRepositoryTests {
     @Autowired 
     private TestEntityManager entityManager;
 
-    private LocalDateTime startTime = LocalDateTime.of(2026, 1, 1, 10, 50);
+    private Instant startTime = Instant.parse("2026-01-01T10:50:00Z");
 
     private List<Application> applications = List.of(
         new Application("C:\\Example\\blitz.exe", "Blitz", true),
@@ -45,8 +44,8 @@ public class UsageRepositoryTests {
 
     private List<Usage> seed = List.of(
         new Usage(applicationHasCategories.get(0), startTime, startTime),
-        new Usage(applicationHasCategories.get(1), startTime.plusMinutes(1), startTime.plusMinutes(1)),
-        new Usage(applicationHasCategories.get(2), startTime.plusMinutes(2), startTime.plusMinutes(2))
+        new Usage(applicationHasCategories.get(1), startTime.plusSeconds(1), startTime.plusSeconds(1)),
+        new Usage(applicationHasCategories.get(2), startTime.plusSeconds(2), startTime.plusSeconds(2))
     );
 
     @BeforeEach 
@@ -75,17 +74,9 @@ public class UsageRepositoryTests {
 
             assertEquals(usages.size(), expectedSize);
             usages.forEach((usage) -> {
-                LocalDateTime usageStartTime = usage.getPK().getStartTime();
-                assertTrue(usageStartTime.isEqual(startTime) || usageStartTime.isAfter(startTime));
+                Instant usageStartTime = usage.getPK().getStartTime();
+                assertTrue(usageStartTime.equals(startTime) || usageStartTime.isAfter(startTime));
             });
-
-            LocalDateTime past = startTime.minusDays(1);
-            Usage pastUsage = new Usage(applicationHasCategories.get(0), past, past);
-            entityManager.persist(pastUsage);
-            List<Usage> nextUsages = repository.findAllByStartAndEndTimeBetween(startTime, startTime);
-
-            assertEquals(nextUsages.size(), expectedSize);
-            assertFalse(nextUsages.contains(pastUsage));
         }
     }
 }

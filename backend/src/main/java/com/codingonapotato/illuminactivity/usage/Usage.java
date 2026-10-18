@@ -1,7 +1,7 @@
 package com.codingonapotato.illuminactivity.usage;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
@@ -32,11 +32,11 @@ public class Usage {
     private ApplicationHasCategory applicationCategory;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     protected Usage() {}
 
-    public Usage(ApplicationHasCategory applicationHasCategory, LocalDateTime startTime, LocalDateTime endTime) {;
+    public Usage(ApplicationHasCategory applicationHasCategory, Instant startTime, Instant endTime) {;
         validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
         this.applicationCategory = applicationHasCategory;
         this.pk = new PK(applicationHasCategory.getPk(), startTime);
@@ -51,21 +51,21 @@ public class Usage {
         return this.applicationCategory;
     }
 
-    public LocalDateTime getEndTime() {
+    public Instant getEndTime() {
         return this.endTime;
     }
     
-    public void setEndTime(LocalDateTime endTime) {
+    public void setEndTime(Instant endTime) {
         validateEndTimeIsEqualOrAfterStartTime(pk.startTime, endTime);
         this.endTime = endTime;
     }
 
-    public static void validateEndTimeIsEqualOrAfterStartTime(LocalDateTime startTime, LocalDateTime endTime) {
+    public static void validateEndTimeIsEqualOrAfterStartTime(Instant startTime, Instant endTime) {
         if (startTime.isAfter(endTime))
             throw new UsageDateTimeException();
     }
 
-    public static void validateInput(ApplicationHasCategory applicationHasCategory, LocalDateTime startTime, LocalDateTime endTime) {
+    public static void validateInput(ApplicationHasCategory applicationHasCategory, Instant startTime, Instant endTime) {
         validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
     }
 
@@ -74,9 +74,9 @@ public class Usage {
         private ApplicationHasCategory.PK applicationHasCategoryPK;
 
         @Column(name = "start_time")
-        private LocalDateTime startTime;
+        private Instant startTime;
 
-        public PK(ApplicationHasCategory.PK applicationHasCategoryPK, LocalDateTime startTime) {
+        public PK(ApplicationHasCategory.PK applicationHasCategoryPK, Instant startTime) {
             this.applicationHasCategoryPK = applicationHasCategoryPK;
             this.startTime = startTime;
         }
@@ -88,7 +88,7 @@ public class Usage {
             return this.applicationHasCategoryPK;
         }
 
-        public LocalDateTime getStartTime() {
+        public Instant getStartTime() {
             return this.startTime;
         }
 

@@ -1,8 +1,10 @@
 package com.codingonapotato.illuminactivity.usage;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -25,23 +27,25 @@ public class UsageServiceImpl implements UsageService {
     @Override 
     public List<Usage> getUsage(LocalDate date) {
         List<Usage> usageList = new ArrayList<>();
-        LocalDateTime startTime = LocalDateTime.of(date, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+        Instant startTime = getInstant(LocalDateTime.of(date, LocalTime.MIN));
+        Instant endTime = getInstant(LocalDateTime.of(date, LocalTime.MAX));
         usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime).forEach(usageList::add);
         return usageList;
     }
 
     @Override
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
-        Usage.validateEndTimeIsEqualOrAfterStartTime(start, end);
+        Instant startTime = getInstant(start);
+        Instant endTime = getInstant(end);
+        Usage.validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
 
         List<Usage> usageList = new ArrayList<>();
-        usageRepository.findAllByStartAndEndTimeBetween(start, end).forEach(usageList::add);
+        usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime).forEach(usageList::add);
         return usageList;
     }
 
     @Override
-    public void addUsage(Application app, Category category, LocalDateTime start, LocalDateTime end) {
+    public void addUsage(Application app, Category category, Instant start, Instant end) {
         ApplicationHasCategory.PK applicationCategoryPK = new ApplicationHasCategory.PK(app.getPath(), category.getName());
         ApplicationHasCategory applicationHasCategory = applicationCategoryRepository.getReferenceById(applicationCategoryPK);
         Usage usage = new Usage(applicationHasCategory, start, end);
@@ -51,7 +55,7 @@ public class UsageServiceImpl implements UsageService {
     
     @Override 
     @Transactional  
-    public void updateUsage(Usage usage, LocalDateTime start, LocalDateTime end) {
+    public void updateUsage(Usage usage, Instant start, Instant end) {
         Usage.validateEndTimeIsEqualOrAfterStartTime(start, end);
         
         if (usage.getPK().getStartTime().equals(start)) {
@@ -69,5 +73,10 @@ public class UsageServiceImpl implements UsageService {
     @Override 
     public void deleteUsage(Usage usage) {
         usageRepository.delete(usage);
+    }
+
+    private static Instant getInstant(LocalDateTime dateTime) {
+        ZoneId zone = ZoneId.systemDefault();
+        return dateTime.atZone(zone).toInstant();
     }
 }

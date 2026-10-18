@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +49,12 @@ public class UsageServiceImplTests {
     private ApplicationHasCategory seedApplicationCategory =
         new ApplicationHasCategory(seedApplication, seedCategory);
 
-    private LocalDateTime firstStart = LocalDateTime.of(2026, 1, 1, 10, 50);
+    private Instant firstStart = Instant.parse("2026-01-01T10:50:00Z");
 
     private List<Usage> seedUsages = List.of(
-        new Usage(seedApplicationCategory, firstStart, firstStart.plusMinutes(5)),
-        new Usage(seedApplicationCategory, firstStart.plusMinutes(5), firstStart.plusMinutes(6)),
-        new Usage(seedApplicationCategory, firstStart.plusDays(1), firstStart.plusDays(1).plusMinutes(5))
+        new Usage(seedApplicationCategory, firstStart, firstStart.plusSeconds(5)),
+        new Usage(seedApplicationCategory, firstStart.plusSeconds(5), firstStart.plusSeconds(6)),
+        new Usage(seedApplicationCategory, firstStart.plus(1, ChronoUnit.DAYS), firstStart.plus(1, ChronoUnit.DAYS).plus(5, ChronoUnit.MINUTES))
     );
 
     @BeforeEach
@@ -77,12 +80,12 @@ public class UsageServiceImplTests {
         @DisplayName("should return usage for the specified date")
         void shouldReturnUsageForDate() {
             int expectedSize = 2;
-            LocalDate targetDate = firstStart.toLocalDate();
+            LocalDate targetDate = firstStart.atZone(ZoneId.systemDefault()).toLocalDate();
             List<Usage> usages = usageService.getUsage(targetDate);
 
             assertEquals(expectedSize, usages.size());
             usages.forEach((usage) -> {
-                assertTrue(usage.getPK().getStartTime().toLocalDate().isEqual(targetDate));
+                assertTrue(usage.getPK().getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(targetDate));
             });
         }
     }
@@ -93,9 +96,10 @@ public class UsageServiceImplTests {
         @Test
         @DisplayName("should return usage within the specified date-time range")
         void shouldReturnUsageBetweenDateTimes() {
-            LocalDateTime end = firstStart.plusDays(1).plusHours(1);
+            LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime end = start.plusDays(1).plusHours(1);
 
-            List<Usage> usages = usageService.getUsage(firstStart, end);
+            List<Usage> usages = usageService.getUsage(start, end);
 
             assertEquals(seedUsages.size(), usages.size());
             seedUsages.forEach((seedUsage) -> assertTrue(usages.contains(seedUsage)));
@@ -104,10 +108,11 @@ public class UsageServiceImplTests {
         @Test
         @DisplayName("should reject a range whose end is before its start")
         void shouldRejectEndBeforeStart() {
-            LocalDateTime end = firstStart.minusMinutes(1);
+            LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime end = start.minusMinutes(1);
 
             assertThrows(UsageDateTimeException.class,
-                () -> usageService.getUsage(firstStart, end));
+                () -> usageService.getUsage(start, end));
         }
     }
 
@@ -117,8 +122,8 @@ public class UsageServiceImplTests {
         @Test
         @DisplayName("should add usage for an application category")
         void shouldAddUsage() {
-            LocalDateTime start = firstStart.plusDays(2);
-            LocalDateTime end = start.plusMinutes(10);
+            Instant start = firstStart.plus(2, ChronoUnit.DAYS);
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
 
             usageService.addUsage(seedApplication, seedCategory, start, end);
 
@@ -134,7 +139,7 @@ public class UsageServiceImplTests {
         @DisplayName("update usage with new end time and unchanged start time")
         void shouldUpdateWithNewEndTime() {
             Usage target = seedUsages.get(0);
-            LocalDateTime end = firstStart.plusMinutes(15);
+            Instant end = firstStart.plus(15, ChronoUnit.MINUTES);
 
             usageService.updateUsage(target, firstStart, end);
 
@@ -146,8 +151,8 @@ public class UsageServiceImplTests {
         @DisplayName("update usage with new start and end time")
         void shouldUpdateWithNewStartAndEndTime() {
             Usage target = seedUsages.get(0);
-            LocalDateTime start = firstStart.plusHours(1);
-            LocalDateTime end = start.plusMinutes(10);
+            Instant start = firstStart.plus(1, ChronoUnit.HOURS);
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
             Usage.PK oldPK = target.getPK();
             Usage.PK newPK = new Usage.PK(seedApplicationCategory.getPk(), start);
 

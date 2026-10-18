@@ -2,7 +2,7 @@ package com.codingonapotato.illuminactivity.usage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,12 +16,12 @@ public class UsageTests {
         new ApplicationHasCategory(
             new Application("C:\\Example\\example.exe", "Example", true),
             new Category("Example", "#FFFFFF"));
-    private static final LocalDateTime START_TIME = LocalDateTime.of(2026, 1, 1, 10, 50);
+    private static final Instant START_TIME = Instant.parse("2026-01-01T10:50:00Z");
 
     @Test
     @DisplayName("Should create instance with specified fields")
     void testConstructor() {
-        LocalDateTime endTime = START_TIME.plusMinutes(5);
+        Instant endTime = START_TIME.plusSeconds(5 * 60);
         Usage usage = new Usage(APPLICATION_CATEGORY, START_TIME, endTime);
 
         assertEquals(APPLICATION_CATEGORY, usage.getApplicationCategory());
@@ -34,7 +34,7 @@ public class UsageTests {
         @Test
         @DisplayName("should fail when end time is before start time")
         void shouldFailWithEndTimeBeforeStartTime() {
-            LocalDateTime endTime = START_TIME.minusMinutes(1);
+            Instant endTime = START_TIME.minusSeconds(60);
 
             assertThrows(UsageDateTimeException.class,
                 () -> new Usage(APPLICATION_CATEGORY, START_TIME, endTime));
@@ -47,7 +47,7 @@ public class UsageTests {
         @DisplayName("should update end time when it is after start time")
         void shouldSetValidEndTime() {
             Usage usage = new Usage(APPLICATION_CATEGORY, START_TIME, START_TIME);
-            LocalDateTime endTime = START_TIME.plusMinutes(5);
+            Instant endTime = START_TIME.plusSeconds(5 * 60);
 
             usage.setEndTime(endTime);
 
@@ -58,8 +58,8 @@ public class UsageTests {
         @DisplayName("should fail when end time is before start time")
         void shouldFailWithEndTimeBeforeStartTime() {
             Usage usage = new Usage(APPLICATION_CATEGORY, START_TIME, START_TIME);
-            LocalDateTime originalEndTime = usage.getEndTime();
-            LocalDateTime endTime = START_TIME.minusMinutes(1);
+            Instant originalEndTime = usage.getEndTime();
+            Instant endTime = START_TIME.minusSeconds(60);
 
             assertThrows(UsageDateTimeException.class, () -> usage.setEndTime(endTime));
             assertEquals(originalEndTime, usage.getEndTime());

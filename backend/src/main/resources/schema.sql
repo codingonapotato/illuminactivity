@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS ApplicationHasCategory(
 CREATE TABLE IF NOT EXISTS ApplicationCategoryUsage(
     path VARCHAR,
     category VARCHAR,
-    start_time TIMESTAMP,
-    end_time TIMESTAMP NOT NULL,
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (path, category, start_time),
     FOREIGN KEY (path, category) REFERENCES ApplicationHasCategory(path, category)
         ON DELETE CASCADE
