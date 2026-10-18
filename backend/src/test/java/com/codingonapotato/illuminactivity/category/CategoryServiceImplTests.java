@@ -118,7 +118,7 @@ public class CategoryServiceImplTests {
         @DisplayName("should reject update category name to one that already exists")
         void shouldRejectUpdateNameToExistingCategory() {
             Category target = seedCategories.get(0);
-            String newName = target.getName();
+            String newName = seedCategories.get(1).getName();
             String newColour =  "#FFFFFF";
 
             try {
