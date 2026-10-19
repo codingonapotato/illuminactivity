@@ -2,6 +2,7 @@ package com.codingonapotato.illuminactivity.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -111,12 +112,13 @@ public class ApplicationServiceImplTests {
             entityManager.flush();
 
             entityManager.refresh(target);
-            int expectedSize = target.getApplicationCategories().size() - 1;
+            int expectedSize = target.getApplicationCategories().size();
 
             applicationService.removeCategory(target, seedCategory);
 
-            assertFalse(applicationCategoryRepository.existsById(applicationCategory.getPk()));
+            assertTrue(applicationCategoryRepository.existsById(applicationCategory.getPk()));
             assertEquals(expectedSize, target.getApplicationCategories().size());
+            assertNotNull(applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
         }
     }
 

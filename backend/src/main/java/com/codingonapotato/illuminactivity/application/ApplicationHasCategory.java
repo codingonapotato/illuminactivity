@@ -1,8 +1,10 @@
 package com.codingonapotato.illuminactivity.application;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 import com.codingonapotato.illuminactivity.category.Category;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -27,12 +29,16 @@ public class ApplicationHasCategory {
     @JoinColumn(name = "category")
     private Category category;
 
+    @Column(name="deleted_at")
+    private Instant deletedAt;
+
     protected ApplicationHasCategory() {}
 
     public ApplicationHasCategory(Application application, Category category) {
         this.application = application;
         this.category = category;
         this.pk = new PK(application.getPath(), category.getName());
+        this.deletedAt = null;
     }
 
     public PK getPk() { 
@@ -45,6 +51,14 @@ public class ApplicationHasCategory {
 
     public Category getCategory() { 
         return category; 
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Instant time) {
+        deletedAt = time;
     }
 
     @Embeddable

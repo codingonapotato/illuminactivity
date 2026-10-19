@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS Category(
 CREATE TABLE IF NOT EXISTS ApplicationHasCategory(
     path VARCHAR,
     category VARCHAR,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     PRIMARY KEY (path, category),
     FOREIGN KEY (path) REFERENCES Application(path)
         ON DELETE CASCADE

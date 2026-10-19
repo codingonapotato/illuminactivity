@@ -1,5 +1,6 @@
 package com.codingonapotato.illuminactivity.application;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -30,16 +31,22 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public void addCategory(Application target, Category category) {
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
+        ApplicationHasCategory.PK pk = applicationCategory.getPk();
+        if (!applicationCategoryRepository.existsById(pk)) {
+            target.getApplicationCategories().add(applicationCategory);
+        } else {
+            applicationCategory = applicationCategoryRepository.findById(pk).get();
+            applicationCategory.setDeletedAt(null);
+        }
         applicationCategoryRepository.save(applicationCategory);
-        target.getApplicationCategories().add(applicationCategory);
     }
 
     @Override
     public void removeCategory(Application target, Category category) {
         ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), category.getName());
         ApplicationHasCategory applicationCategory = applicationCategoryRepository.findById(pk).get();
-        applicationCategoryRepository.delete(applicationCategory);
-        target.getApplicationCategories().remove(applicationCategory);
+        applicationCategory.setDeletedAt(Instant.now());
+        applicationCategoryRepository.save(applicationCategory);
     }
 
     @Override
