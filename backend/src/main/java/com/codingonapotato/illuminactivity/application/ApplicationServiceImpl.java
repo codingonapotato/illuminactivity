@@ -3,10 +3,13 @@ package com.codingonapotato.illuminactivity.application;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
+@Transactional (readOnly = true)
 public class ApplicationServiceImpl implements ApplicationService {
     private ApplicationRepository applicationRepository;
     private ApplicationHasCategoryRepository applicationCategoryRepository;
@@ -29,19 +32,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    @Transactional 
     public void addCategory(Application target, Category category) {
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
         ApplicationHasCategory.PK pk = applicationCategory.getPk();
-        if (!applicationCategoryRepository.existsById(pk)) {
-            target.getApplicationCategories().add(applicationCategory);
-        } else {
-            applicationCategory = applicationCategoryRepository.findById(pk).get();
+        Optional<ApplicationHasCategory> optional = applicationCategoryRepository.findById(pk);
+        if (optional.isPresent()) {
+            applicationCategory = optional.get();
             applicationCategory.setDeletedAt(null);
         }
         applicationCategoryRepository.save(applicationCategory);
     }
 
     @Override
+    @Transactional
     public void removeCategory(Application target, Category category) {
         ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), category.getName());
         ApplicationHasCategory applicationCategory = applicationCategoryRepository.findById(pk).get();

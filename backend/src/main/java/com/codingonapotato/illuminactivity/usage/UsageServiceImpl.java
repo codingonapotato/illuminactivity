@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +14,7 @@ import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRep
 import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
+@Transactional(readOnly = true)
 public class UsageServiceImpl implements UsageService {
     private UsageRepository usageRepository;
     private ApplicationHasCategoryRepository applicationCategoryRepository;
@@ -26,11 +26,9 @@ public class UsageServiceImpl implements UsageService {
 
     @Override 
     public List<Usage> getUsage(LocalDate date) {
-        List<Usage> usageList = new ArrayList<>();
         Instant startTime = getInstant(LocalDateTime.of(date, LocalTime.MIN));
         Instant endTime = getInstant(LocalDateTime.of(date, LocalTime.MAX));
-        usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime).forEach(usageList::add);
-        return usageList;
+        return usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime);
     }
 
     @Override
@@ -38,13 +36,11 @@ public class UsageServiceImpl implements UsageService {
         Instant startTime = getInstant(start);
         Instant endTime = getInstant(end);
         Usage.validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
-
-        List<Usage> usageList = new ArrayList<>();
-        usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime).forEach(usageList::add);
-        return usageList;
+        return usageRepository.findAllByStartAndEndTimeBetween(startTime, endTime);
     }
 
     @Override
+    @Transactional 
     public void addUsage(Application app, Category category, Instant start, Instant end) {
         ApplicationHasCategory.PK applicationCategoryPK = new ApplicationHasCategory.PK(app.getPath(), category.getName());
         ApplicationHasCategory applicationHasCategory = applicationCategoryRepository.getReferenceById(applicationCategoryPK);

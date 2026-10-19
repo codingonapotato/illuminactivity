@@ -7,7 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
 import com.codingonapotato.illuminactivity.category.exception.DuplicateCategoryException;
 
-@Service 
+@Service
+@Transactional (readOnly = true) 
 public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
     private ApplicationHasCategoryRepository applicationCategoryRepository;
@@ -56,8 +57,8 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.updateCategory(target.getName(), newName, newColor, null);
     }
 
-    @Transactional 
     @Override
+    @Transactional 
     public void deleteCategory(Category target) {
         Instant deletionTime = Instant.now();
         target.setDeletedAt(deletionTime);
