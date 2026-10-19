@@ -4,20 +4,24 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
 import com.codingonapotato.illuminactivity.category.exception.DuplicateCategoryException;
 
 @Service 
 public class CategoryServiceImpl implements CategoryService {
-    private CategoryRepository repository;
+    private CategoryRepository categoryRepository;
+    private ApplicationHasCategoryRepository applicationCategoryRepository;
     
-    public CategoryServiceImpl(CategoryRepository repository) {
-        this.repository = repository;
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ApplicationHasCategoryRepository applicationCategoryRepository) {
+        this.categoryRepository = categoryRepository;
+        this.applicationCategoryRepository = applicationCategoryRepository;
     }
 
     @Override
     public List<Category> getCategories() {
         List<Category> categories = new ArrayList<>();
-        repository.findAll().forEach(categories::add);
+        categoryRepository.findAll().forEach(categories::add);
 
         return categories;
     }
@@ -27,13 +31,14 @@ public class CategoryServiceImpl implements CategoryService {
         Category category;
         if (activeCategoryExists(name))
             throw new DuplicateCategoryException(name);
-        else if (repository.existsById(name)) {
-            category = repository.findById(name).get();
+        else if (categoryRepository.existsById(name)) {
+            category = categoryRepository.findById(name).get();
             category.setDeletedAt(null);
+            updateApplicationCategories(category, null);
         } else {
             category = new Category(name, color);
         }
-        repository.save(category);
+        categoryRepository.save(category);
     }
 
     @Override
@@ -42,26 +47,36 @@ public class CategoryServiceImpl implements CategoryService {
         if (!target.getName().equals(newName) && activeCategoryExists(newName))
             throw new DuplicateCategoryException(newName);
         else if (!target.getName().equals(newName)) { // name change required + activeCategory DNE
-            repository.delete(target);
-            repository.flush();
+            categoryRepository.delete(target);
+            categoryRepository.flush();
 
-            repository.save(new Category(newName, newColor));
+            categoryRepository.save(new Category(newName, newColor));
         } else { // no name change required. activeCategoryExists must be true here to make sense since editing an inactive category makes no sense
             target.setColour(newColor);
-            repository.save(target);
+            categoryRepository.save(target);
         }
-
-        
-
     }
 
     @Override
     public void deleteCategory(Category target) {
-        target.setDeletedAt(Instant.now());
-        repository.save(target);
+        Instant deletionTime = Instant.now();
+        target.setDeletedAt(deletionTime);
+        categoryRepository.save(target);
+
+        updateApplicationCategories(target, deletionTime);
+    }
+
+    private void updateApplicationCategories(Category target, Instant deletionTime) {
+        List<ApplicationHasCategory> applicationCategories = applicationCategoryRepository.findAll();
+        applicationCategories.forEach((applicationCategory) -> {
+            if (applicationCategory.getCategory().equals(target)) {
+                applicationCategory.setDeletedAt(deletionTime);
+                applicationCategoryRepository.save(applicationCategory);
+            }
+        });
     }
 
     public boolean activeCategoryExists(String name) {
-        return repository.existsById(name) && repository.findById(name).get().getDeletedAt() == null;
+        return categoryRepository.existsById(name) && categoryRepository.findById(name).get().getDeletedAt() == null;
     }
 }
