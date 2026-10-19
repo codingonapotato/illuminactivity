@@ -43,7 +43,7 @@ public class CategoryServiceImplTests {
 
     @AfterEach 
     void teardown() {
-        seedCategories.forEach(entityManager::remove);
+        repository.deleteAll();
     }
 
     @Nested
