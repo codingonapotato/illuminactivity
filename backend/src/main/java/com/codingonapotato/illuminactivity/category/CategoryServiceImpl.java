@@ -1,7 +1,6 @@
 package com.codingonapotato.illuminactivity.category;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +19,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getCategories() {
-        List<Category> categories = new ArrayList<>();
-        categoryRepository.findAll().forEach(categories::add);
-
-        return categories;
+        return categoryRepository.findAll().stream().filter(category -> category.getDeletedAt() == null).toList();
     }
 
     @Override
