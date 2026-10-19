@@ -42,7 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional 
     public void editCategory(Category target, String newName, String newColor) {
         Category.validateInput(newName, newColor);
-        boolean nameChangeRequired = !target.getName().equals(newName)
+        boolean nameChangeRequired = !target.getName().equals(newName);
         if (nameChangeRequired && activeCategoryExists(newName))
             throw new DuplicateCategoryException(newName);
         else if (nameChangeRequired && inactiveCategoryExists(newName)) {
