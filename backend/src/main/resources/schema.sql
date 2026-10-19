@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS Application(
 
 CREATE TABLE IF NOT EXISTS Category(
     name VARCHAR PRIMARY KEY, 
-    colour VARCHAR
+    colour VARCHAR,
+    deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS ApplicationHasCategory(

@@ -1,10 +1,12 @@
 package com.codingonapotato.illuminactivity.category;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.regex.Pattern;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.category.exception.InvalidColourException;
 import com.codingonapotato.illuminactivity.category.exception.InvalidNameException;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -15,6 +17,9 @@ public class Category {
     private String name;
     
     private String colour;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @OneToMany(mappedBy = "category")
     private List<ApplicationHasCategory> categoryApplications;
@@ -29,6 +34,7 @@ public class Category {
         validateInput(name, colour);
         this.name = name;
         this.colour = colour;
+        this.deletedAt = null;
     }
 
     public String getName() {
@@ -47,6 +53,14 @@ public class Category {
     public void setColour(String nextColour) {
         validateColour(nextColour);
         this.colour = nextColour;
+    }
+
+    public Instant getDeletedAt() {
+        return this.deletedAt;
+    }
+
+    public void setDeletedAt(Instant time) {
+        this.deletedAt = time;
     }
 
     private static void validateName(String name) {

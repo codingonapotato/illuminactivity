@@ -1,5 +1,6 @@
 package com.codingonapotato.illuminactivity.category;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,31 +24,44 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void createCategory(String name, String color) {
-        if (repository.existsById(name))
+        Category category;
+        if (activeCategoryExists(name))
             throw new DuplicateCategoryException(name);
-        Category category = new Category(name, color);
+        else if (repository.existsById(name)) {
+            category = repository.findById(name).get();
+            category.setDeletedAt(null);
+        } else {
+            category = new Category(name, color);
+        }
         repository.save(category);
     }
 
     @Override
     public void editCategory(Category target, String newName, String newColor) {
-        if (!target.getName().equals(newName) && repository.existsById(newName))
+        // name change required + active category already exists with the desired name
+        if (!target.getName().equals(newName) && activeCategoryExists(newName))
             throw new DuplicateCategoryException(newName);
-        
-        target.setColour(newColor);
-        if (target.getName().equals(newName)) {
+        else if (!target.getName().equals(newName)) { // name change required + activeCategory DNE
+            repository.delete(target);
+            repository.flush();
+
+            repository.save(new Category(newName, newColor));
+        } else { // no name change required. activeCategoryExists must be true here to make sense since editing an inactive category makes no sense
+            target.setColour(newColor);
             repository.save(target);
-            return;
         }
 
-        repository.delete(target);
-        repository.flush();
+        
 
-        repository.save(new Category(newName, newColor));
     }
 
     @Override
     public void deleteCategory(Category target) {
-        repository.delete(target);
+        target.setDeletedAt(Instant.now());
+        repository.save(target);
+    }
+
+    public boolean activeCategoryExists(String name) {
+        return repository.existsById(name) && repository.findById(name).get().getDeletedAt() == null;
     }
 }

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -140,7 +141,8 @@ public class CategoryServiceImplTests {
             String targetName = target.getName();
 
             categoryService.deleteCategory(target);
-            assertFalse(repository.existsById(targetName));
+            assertTrue(repository.existsById(targetName));
+            assertTrue(repository.findById(targetName).get().getDeletedAt() instanceof Instant);
         }
     }
 }
