@@ -41,6 +41,9 @@ public class ApplicationServiceImpl implements ApplicationService {
             applicationCategory = optional.get();
             applicationCategory.setDeletedAt(null);
         }
+        
+        target.getApplicationCategories().add(applicationCategory);
+        category.getCategoryApplications().add(applicationCategory);
         applicationCategoryRepository.save(applicationCategory);
     }
 
@@ -50,6 +53,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), category.getName());
         ApplicationHasCategory applicationCategory = applicationCategoryRepository.findById(pk).get();
         applicationCategory.setDeletedAt(Instant.now());
+
+        target.getApplicationCategories().remove(applicationCategory);
+        category.getCategoryApplications().remove(applicationCategory);
         applicationCategoryRepository.save(applicationCategory);
     }
 
