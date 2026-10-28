@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.codingonapotato.illuminactivity.application.exception.DuplicateApplicationCategoryException;
+import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 
 @Service 
@@ -39,6 +41,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         Optional<ApplicationHasCategory> optional = applicationCategoryRepository.findById(pk);
         if (optional.isPresent()) {
             applicationCategory = optional.get();
+            if (applicationCategory.getDeletedAt() == null) {
+                throw new DuplicateApplicationCategoryException(applicationCategory);
+            }
             applicationCategory.setDeletedAt(null);
         }
         
@@ -52,6 +57,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     public void removeCategory(Application target, Category category) {
         ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), category.getName());
         ApplicationHasCategory applicationCategory = applicationCategoryRepository.findById(pk).get();
+        
+        if (applicationCategory.getDeletedAt() != null)
+            throw new InactiveApplicationCategoryException(applicationCategory);
+        
         applicationCategory.setDeletedAt(Instant.now());
 
         target.getApplicationCategories().remove(applicationCategory);

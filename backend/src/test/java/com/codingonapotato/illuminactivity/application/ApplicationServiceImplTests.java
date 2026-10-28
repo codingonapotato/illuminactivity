@@ -3,7 +3,10 @@ package com.codingonapotato.illuminactivity.application;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import com.codingonapotato.illuminactivity.application.exception.DuplicateApplicationCategoryException;
+import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 
 @DataJpaTest
@@ -97,6 +102,23 @@ public class ApplicationServiceImplTests {
             assertTrue(applicationCategoryRepository.existsById(pk));
             assertEquals(expectedSize, target.getApplicationCategories().size());
         }
+
+        @Test
+        @DisplayName("should fail to add an already active application-category relationship")
+        void shouldRejectAlreadyActiveCategoryRelationship() {
+            Application target = seedApplications.get(0);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, seedCategory);
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            assertThrows(DuplicateApplicationCategoryException.class,
+                () -> applicationService.addCategory(target, seedCategory));
+
+            assertTrue(applicationCategoryRepository.existsById(applicationCategory.getPk()));
+            assertNull(
+                applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
+        }
     }
 
     @Nested
@@ -112,13 +134,32 @@ public class ApplicationServiceImplTests {
             entityManager.flush();
 
             entityManager.refresh(target);
-            int expectedSize = target.getApplicationCategories().size();
+            int expectedSize = target.getApplicationCategories().size() - 1;
 
             applicationService.removeCategory(target, seedCategory);
 
             assertTrue(applicationCategoryRepository.existsById(applicationCategory.getPk()));
             assertEquals(expectedSize, target.getApplicationCategories().size());
             assertNotNull(applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
+        }
+
+        @Test
+        @DisplayName("should fail to soft-delete an already soft-deleted application-category relationship")
+        void shouldRejectAlreadySoftDeletedCategoryRelationship() {
+            Application target = seedApplications.get(0);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, seedCategory);
+            applicationCategory.setDeletedAt(Instant.now());
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            Instant deletedAt = applicationCategory.getDeletedAt();
+
+            assertThrows(InactiveApplicationCategoryException.class,
+                () -> applicationService.removeCategory(target, seedCategory));
+
+            assertEquals(deletedAt,
+                applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
         }
     }
 
