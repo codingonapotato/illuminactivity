@@ -67,7 +67,8 @@ public class UsageServiceImpl implements UsageService {
     }
 
     @Override 
-    public void deleteUsage(Usage usage) {
+    @Transactional
+    public void deleteUsage(Usage usage)
         usageRepository.delete(usage);
     }
 
