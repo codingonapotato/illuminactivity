@@ -70,7 +70,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     @Transactional
-    public void setApplicationTracked(Application target, Boolean tracked)
+    public void setApplicationTracked(Application target, Boolean tracked) {
         target.setTracked(tracked);
         applicationRepository.save(target);
     }

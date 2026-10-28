@@ -2,6 +2,7 @@ package com.codingonapotato.illuminactivity.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import java.time.Instant;
@@ -92,6 +93,21 @@ public class CategoryServiceImplTests {
             } catch (Exception e) {
                 assertTrue(e instanceof DuplicateCategoryException);
             }
+        }
+
+        @Test
+        @DisplayName("should have category with same name as soft-deleted one with updated colour")
+        void shouldReactivateCategoryWithUpdatedColour() {
+            Category target = seedCategories.get(0);
+            String name = target.getName();
+            String newColour = "#111111";
+
+            categoryService.deleteCategory(target);
+            categoryService.createCategory(name, newColour);
+
+            Category reactivatedCategory = repository.findById(name).get();
+            assertNull(reactivatedCategory.getDeletedAt());
+            assertEquals(newColour, reactivatedCategory.getColour());
         }
     }
 

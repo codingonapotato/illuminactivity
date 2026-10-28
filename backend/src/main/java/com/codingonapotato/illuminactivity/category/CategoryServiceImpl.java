@@ -32,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
         else if (categoryRepository.existsById(name)) {
             category = categoryRepository.findById(name).get();
             category.setDeletedAt(null);
+            category.setColour(color);
             updateApplicationCategories(category, null, category);
         } else {
             category = new Category(name, color);
