@@ -31,9 +31,8 @@ public class CategoryServiceImpl implements CategoryService {
             throw new DuplicateCategoryException(name);
         else if (categoryRepository.existsById(name)) {
             category = categoryRepository.findById(name).get();
-            category.setDeletedAt(null);
+            activateCategory(category);
             category.setColour(color);
-            updateApplicationCategories(category, null, category);
         } else {
             category = new Category(name, color);
         }
@@ -47,36 +46,36 @@ public class CategoryServiceImpl implements CategoryService {
         boolean nameChangeRequired = !target.getName().equals(newName);
         if (nameChangeRequired && activeCategoryExists(newName))
             throw new DuplicateCategoryException(newName);
-        else if (nameChangeRequired && inactiveCategoryExists(newName)) {
-            Category category = categoryRepository.findById(newName).get();
-            categoryRepository.updateCategory(newName, newName, newColor, null);
-            // migrate app-category pairs from old category to point to new category
-            updateApplicationCategories(target, null, category);
-            categoryRepository.deleteById(target.getName());
-        }
-        else
+        else if (nameChangeRequired && categoryRepository.existsById(newName)) {
+            deleteCategory(target);
+            createCategory(newName, newColor);
+        } else
             categoryRepository.updateCategory(target.getName(), newName, newColor, null);
     }
 
     @Override
     @Transactional 
     public void deleteCategory(Category target) {
-        Instant deletionTime = Instant.now();
-        target.setDeletedAt(deletionTime);
+        deactivateCategory(target);
         categoryRepository.save(target);
-
-        updateApplicationCategories(target, deletionTime, target);
     }
 
-    private void updateApplicationCategories(Category target, Instant deletionTime, Category category) {
-        applicationCategoryRepository.updateApplicationCategoriesForCategory(target.getName(), deletionTime, category.getName());
+    private void activateCategory(Category category) {
+        category.setDeletedAt(null);
+        updateApplicationCategories(category, null);
+    }
+
+    private void deactivateCategory(Category category) {
+        Instant deletionTime = Instant.now();
+        category.setDeletedAt(deletionTime);
+        updateApplicationCategories(category, deletionTime);
+    }
+
+    private void updateApplicationCategories(Category target, Instant deletionTime) {
+        applicationCategoryRepository.updateDeletedAtForCategory(target.getName(), deletionTime);
     }
 
     private boolean activeCategoryExists(String name) {
         return categoryRepository.existsById(name) && categoryRepository.findById(name).get().getDeletedAt() == null;
-    }
-
-    private boolean inactiveCategoryExists(String name) {
-        return categoryRepository.existsById(name) && categoryRepository.findById(name).get().getDeletedAt() != null;
     }
 }

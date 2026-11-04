@@ -2,6 +2,7 @@ package com.codingonapotato.illuminactivity.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -16,6 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import com.codingonapotato.illuminactivity.application.Application;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
+import com.codingonapotato.illuminactivity.application.ApplicationRepository;
 import com.codingonapotato.illuminactivity.category.exception.DuplicateCategoryException;
 
 @DataJpaTest 
@@ -31,6 +36,12 @@ public class CategoryServiceImplTests {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private ApplicationHasCategoryRepository applicationCategoryRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
     private List<Category> seedCategories = List.of(
         new Category("productivity", "#eb4034"),
         new Category("entertainment", "#eb4034"),
@@ -44,7 +55,9 @@ public class CategoryServiceImplTests {
 
     @AfterEach 
     void teardown() {
+        applicationCategoryRepository.deleteAll();
         repository.deleteAll();
+        applicationRepository.deleteAll();
     }
 
     @Nested
@@ -144,6 +157,45 @@ public class CategoryServiceImplTests {
             } catch (Exception e) {
                 assertTrue(e instanceof DuplicateCategoryException);
             }
+        }
+
+        @Test
+        @DisplayName("should reactivate soft-deleted category and deactivate the old one")
+        void shouldReactivateSoftDeletedCategoryWhenRenaming() {
+            Category category1 = seedCategories.get(0);
+            Category category2 = seedCategories.get(1);
+            List<Application> applications = List.of(
+                new Application("C:\\Example\\category-test-1.exe", "Category Test 1", true),
+                new Application("C:\\Example\\category-test-2.exe", "Category Test 2", true)
+            );
+
+            applications.forEach(application -> {
+                entityManager.persist(application);
+                entityManager.persist(new ApplicationHasCategory(application, category1));
+                entityManager.persist(new ApplicationHasCategory(application, category2));
+            });
+            entityManager.flush();
+
+            String newColour = "#FFFFFF";
+            categoryService.deleteCategory(category1);
+            categoryService.editCategory(category2, category1.getName(), newColour);
+
+            entityManager.flush();
+            entityManager.clear();
+
+            assertNull(repository.findById(category1.getName()).get().getDeletedAt());
+            assertEquals(repository.findById(category1.getName()).get().getColour(), newColour);
+            assertNotNull(repository.findById(category2.getName()).get().getDeletedAt());
+
+            applications.forEach(application -> {
+                ApplicationHasCategory category1Pair = applicationCategoryRepository.findById(
+                    new ApplicationHasCategory.PK(application.getPath(), category1.getName())).get();
+                ApplicationHasCategory category2Pair = applicationCategoryRepository.findById(
+                    new ApplicationHasCategory.PK(application.getPath(), category2.getName())).get();
+
+                assertNull(category1Pair.getDeletedAt());
+                assertNotNull(category2Pair.getDeletedAt());
+            });
         }
     }
 
