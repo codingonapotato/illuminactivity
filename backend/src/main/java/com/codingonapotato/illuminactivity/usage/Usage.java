@@ -26,8 +26,8 @@ public class Usage {
     @ManyToOne(optional = false)
     @MapsId("applicationHasCategoryPK")
     @JoinColumns({
-        @JoinColumn(name = "path"),
-        @JoinColumn(name = "category")
+        @JoinColumn(name = "category"),
+        @JoinColumn(name = "path")
     })
     private ApplicationHasCategory applicationCategory;
 
