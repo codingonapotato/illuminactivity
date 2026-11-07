@@ -194,7 +194,7 @@ public class CategoryServiceImplTests {
                     new ApplicationHasCategory.PK(application.getPath(), category2.getName())).get();
 
                 assertNull(category1Pair.getDeletedAt());
-                assertNotNull(category2Pair.getDeletedAt());
+                assertNull(category2Pair.getDeletedAt());
             });
         }
     }
