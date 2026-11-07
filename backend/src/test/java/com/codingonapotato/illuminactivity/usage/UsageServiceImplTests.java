@@ -23,6 +23,7 @@ import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
 import com.codingonapotato.illuminactivity.category.Category;
+import com.codingonapotato.illuminactivity.usage.exception.DuplicateUsageException;
 import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
 
 @DataJpaTest
@@ -129,6 +130,19 @@ public class UsageServiceImplTests {
 
             Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);
             assertTrue(usageRepository.existsById(pk));
+        }
+
+        @Test
+        @DisplayName("should reject a usage with an existing application category and start time")
+        void shouldRejectDuplicateUsage() {
+            Instant start = seedUsages.get(0).getPK().getStartTime();
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
+
+            assertThrows(DuplicateUsageException.class,
+                () -> usageService.addUsage(seedApplication, seedCategory, start, end));
+
+            Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);
+            assertEquals(seedUsages.get(0), usageRepository.findById(pk).orElseThrow());
         }
     }
 

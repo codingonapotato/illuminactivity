@@ -6,12 +6,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
 import com.codingonapotato.illuminactivity.category.Category;
+import com.codingonapotato.illuminactivity.usage.exception.DuplicateUsageException;
 
 @Service 
 @Transactional(readOnly = true)
@@ -45,6 +47,10 @@ public class UsageServiceImpl implements UsageService {
         ApplicationHasCategory.PK applicationCategoryPK = new ApplicationHasCategory.PK(app.getPath(), category.getName());
         ApplicationHasCategory applicationHasCategory = applicationCategoryRepository.getReferenceById(applicationCategoryPK);
         Usage usage = new Usage(applicationHasCategory, start, end);
+        
+        Optional<Usage> optional = usageRepository.findById(usage.getPK());
+        if (optional.isPresent())
+            throw new DuplicateUsageException(usage);
 
         usageRepository.save(usage);
     }
