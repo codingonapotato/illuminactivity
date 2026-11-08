@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -36,8 +37,8 @@ public class Usage {
 
     protected Usage() {}
 
-    public Usage(ApplicationHasCategory applicationHasCategory, Instant startTime, Instant endTime) {;
-        validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
+    public Usage(ApplicationHasCategory applicationHasCategory, Instant startTime, Instant endTime) {
+        validateInput(applicationHasCategory, startTime, endTime);
         this.applicationCategory = applicationHasCategory;
         this.pk = new PK(applicationHasCategory.getPk(), startTime);
         this.endTime = endTime;
@@ -60,12 +61,18 @@ public class Usage {
         this.endTime = endTime;
     }
 
+    private static void validateApplicationCategoryIsActive(ApplicationHasCategory applicationHasCategory) {
+        if (applicationHasCategory.getDeletedAt() != null)
+            throw new InactiveApplicationCategoryException(applicationHasCategory);
+    }
+
     public static void validateEndTimeIsEqualOrAfterStartTime(Instant startTime, Instant endTime) {
         if (startTime.isAfter(endTime))
             throw new UsageDateTimeException();
     }
 
     public static void validateInput(ApplicationHasCategory applicationHasCategory, Instant startTime, Instant endTime) {
+        validateApplicationCategoryIsActive(applicationHasCategory);
         validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
     }
 

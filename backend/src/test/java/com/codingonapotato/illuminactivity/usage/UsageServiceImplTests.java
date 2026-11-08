@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Import;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategoryRepository;
+import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 import com.codingonapotato.illuminactivity.usage.exception.DuplicateUsageException;
 import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
@@ -143,6 +144,20 @@ public class UsageServiceImplTests {
 
             Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);
             assertEquals(seedUsages.get(0), usageRepository.findById(pk).orElseThrow());
+        }
+
+        @Test
+        @DisplayName("should reject usage for an inactive application category")
+        void shouldRejectInactiveApplicationCategory() {
+            seedApplicationCategory.setDeletedAt(Instant.now());
+            Instant start = firstStart.plus(2, ChronoUnit.DAYS);
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
+
+            assertThrows(InactiveApplicationCategoryException.class,
+                () -> usageService.addUsage(seedApplication, seedCategory, start, end));
+
+            Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);
+            assertFalse(usageRepository.existsById(pk));
         }
     }
 

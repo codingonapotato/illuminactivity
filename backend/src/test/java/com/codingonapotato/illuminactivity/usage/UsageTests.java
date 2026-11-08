@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import com.codingonapotato.illuminactivity.application.Application;
 import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
+import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 import com.codingonapotato.illuminactivity.usage.exception.UsageDateTimeException;
 
@@ -38,6 +39,39 @@ public class UsageTests {
 
             assertThrows(UsageDateTimeException.class,
                 () -> new Usage(APPLICATION_CATEGORY, START_TIME, endTime));
+        }
+    }
+
+    @Nested
+    class ValidateInputTests {
+        @Test
+        @DisplayName("should accept an active application category and valid times")
+        void shouldAcceptValidInput() {
+            Instant endTime = START_TIME.plusSeconds(5 * 60);
+
+            Usage.validateInput(APPLICATION_CATEGORY, START_TIME, endTime);
+        }
+
+        @Test
+        @DisplayName("should reject an inactive application category")
+        void shouldRejectInactiveApplicationCategory() {
+            ApplicationHasCategory inactiveApplicationCategory =
+                new ApplicationHasCategory(
+                    new Application("C:\\Example\\inactive.exe", "Inactive", true),
+                    new Category("Inactive", "#000000"));
+            inactiveApplicationCategory.setDeletedAt(Instant.now());
+
+            assertThrows(InactiveApplicationCategoryException.class,
+                () -> Usage.validateInput(inactiveApplicationCategory, START_TIME, START_TIME));
+        }
+
+        @Test
+        @DisplayName("should reject an end time before the start time")
+        void shouldRejectEndTimeBeforeStartTime() {
+            Instant endTime = START_TIME.minusSeconds(60);
+
+            assertThrows(UsageDateTimeException.class,
+                () -> Usage.validateInput(APPLICATION_CATEGORY, START_TIME, endTime));
         }
     }
 
