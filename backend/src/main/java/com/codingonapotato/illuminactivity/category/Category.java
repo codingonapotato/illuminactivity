@@ -1,16 +1,12 @@
 package com.codingonapotato.illuminactivity.category;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
-import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.category.exception.InvalidColourException;
 import com.codingonapotato.illuminactivity.category.exception.InvalidNameException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 
 @Entity 
 public class Category {
@@ -21,9 +17,6 @@ public class Category {
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
-
-    @OneToMany(mappedBy = "category")
-    private List<ApplicationHasCategory> categoryApplications = new ArrayList<>();
 
     public static final int MIN_NAME_LENGTH = 5;
     public static final int MAX_NAME_LENGTH = 50;
@@ -58,10 +51,6 @@ public class Category {
 
     public Instant getDeletedAt() {
         return this.deletedAt;
-    }
-
-    public List<ApplicationHasCategory> getCategoryApplications() {
-        return this.categoryApplications;
     }
 
     public void setDeletedAt(Instant time) {

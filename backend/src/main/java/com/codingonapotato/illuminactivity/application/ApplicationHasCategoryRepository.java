@@ -1,12 +1,16 @@
 package com.codingonapotato.illuminactivity.application;
 
-import java.time.Instant;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
+import com.codingonapotato.illuminactivity.category.Category;
 
 public interface ApplicationHasCategoryRepository extends JpaRepository<ApplicationHasCategory, ApplicationHasCategory.PK> {
-    @Modifying 
-    @NativeQuery(value = "UPDATE ApplicationHasCategory SET deleted_at = ?2 WHERE category = ?1")
-    int updateDeletedAtForCategory(String target, Instant deletedAt);
+    @NativeQuery(value = """
+        SELECT Category.*
+        FROM ApplicationHasCategory as AC
+        INNER JOIN Category ON AC.category = Category.name AND Category.deleted_at IS NULL
+        WHERE AC.path = ?1 AND AC.deleted_at IS NULL
+        """)
+    List<Category> getActiveApplicationCategories(String path);
 }

@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import com.codingonapotato.illuminactivity.application.exception.DuplicateApplicationCategoryException;
 import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
+import com.codingonapotato.illuminactivity.category.CategoryRepository;
 
 @DataJpaTest
 @Import(ApplicationServiceImpl.class)
@@ -30,6 +31,9 @@ public class ApplicationServiceImplTests {
 
     @Autowired
     private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private ApplicationHasCategoryRepository applicationCategoryRepository;
@@ -43,19 +47,22 @@ public class ApplicationServiceImplTests {
         new Application("C:\\Example\\notepad.exe", "Notepad", false)
     );
 
-    private Category seedCategory = new Category("productivity", "#eb4034");
+    private List<Category> seedCategories = List.of(
+        new Category("productivity", "#eb4034"),
+        new Category("entertainment", "#eb4034")
+    );
 
     @BeforeEach
     void setup() {
         seedApplications.forEach(entityManager::persist);
-        entityManager.persist(seedCategory);
+        seedCategories.forEach(entityManager::persist);
     }
 
     @AfterEach
     void teardown() {
         applicationCategoryRepository.deleteAll();
         applicationRepository.deleteAll();
-        entityManager.remove(seedCategory);
+        categoryRepository.deleteAll();
     }
 
     @Nested
@@ -89,24 +96,70 @@ public class ApplicationServiceImplTests {
     // }
 
     @Nested
+    class GetCategoriesTests {
+
+        @Test
+        @DisplayName("should return active application-category pairs")
+        void shouldReturnActiveApplicationCategoryPairs() {
+            Application target = seedApplications.get(0);
+            Category seedCategory1 = seedCategories.get(0);
+            Category seedCategory2 = seedCategories.get(1);
+
+            ApplicationHasCategory activeApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory1);
+            ApplicationHasCategory inactiveApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory2);
+            inactiveApplicationCategory.setDeletedAt(Instant.now());
+            entityManager.persist(activeApplicationCategory);
+            entityManager.persist(inactiveApplicationCategory);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getCategories(target);
+            assertEquals(List.of(seedCategory1), categories);
+        }
+
+        @Test
+        @DisplayName("should not return active application-category pairs for a soft deleted category")
+        void shouldNotReturnActiveApplicationCategoryPairForInactiveCategories() {
+            Application target = seedApplications.get(0);
+            Category inactiveCategory = seedCategories.get(1);
+            inactiveCategory.setDeletedAt(Instant.now());
+            entityManager.persist(inactiveCategory);
+
+            ApplicationHasCategory applicationCategory1 =
+                new ApplicationHasCategory(target, seedCategories.get(0));
+            ApplicationHasCategory applicationCategory2 =
+                new ApplicationHasCategory(target, inactiveCategory);
+            entityManager.persist(applicationCategory1);
+            entityManager.persist(applicationCategory2);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getCategories(target);
+            assertEquals(List.of(seedCategories.get(0)), categories);
+        }
+    }
+
+    @Nested
     class AddCategoryTests {
 
         @Test
         @DisplayName("should associate category with application")
         void shouldAddCategoryToApplication() {
             Application target = seedApplications.get(0);
-            int expectedSize = target.getApplicationCategories().size() + 1;
+            Category seedCategory = seedCategories.get(0);
             applicationService.addCategory(target, seedCategory);
 
             ApplicationHasCategory.PK pk = new ApplicationHasCategory.PK(target.getPath(), seedCategory.getName());
             assertTrue(applicationCategoryRepository.existsById(pk));
-            assertEquals(expectedSize, target.getApplicationCategories().size());
+            assertEquals(seedCategory,
+                applicationCategoryRepository.findById(pk).get().getCategory());
         }
 
         @Test
         @DisplayName("should fail to add an already active application-category relationship")
         void shouldRejectAlreadyActiveCategoryRelationship() {
             Application target = seedApplications.get(0);
+            Category seedCategory = seedCategories.get(0);
             ApplicationHasCategory applicationCategory =
                 new ApplicationHasCategory(target, seedCategory);
             entityManager.persist(applicationCategory);
@@ -128,18 +181,15 @@ public class ApplicationServiceImplTests {
         @DisplayName("should remove category from application")
         void shouldRemoveCategoryFromApplication() {
             Application target = seedApplications.get(0);
+            Category seedCategory = seedCategories.get(0);
             ApplicationHasCategory applicationCategory =
                 new ApplicationHasCategory(target, seedCategory);
             entityManager.persist(applicationCategory);
             entityManager.flush();
 
-            entityManager.refresh(target);
-            int expectedSize = target.getApplicationCategories().size() - 1;
-
             applicationService.removeCategory(target, seedCategory);
 
             assertTrue(applicationCategoryRepository.existsById(applicationCategory.getPk()));
-            assertEquals(expectedSize, target.getApplicationCategories().size());
             assertNotNull(applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
         }
 
@@ -147,6 +197,7 @@ public class ApplicationServiceImplTests {
         @DisplayName("should fail to soft-delete an already soft-deleted application-category relationship")
         void shouldRejectAlreadySoftDeletedCategoryRelationship() {
             Application target = seedApplications.get(0);
+            Category seedCategory = seedCategories.get(0);
             ApplicationHasCategory applicationCategory =
                 new ApplicationHasCategory(target, seedCategory);
             applicationCategory.setDeletedAt(Instant.now());

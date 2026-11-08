@@ -6,6 +6,7 @@ import com.codingonapotato.illuminactivity.category.Category;
 public interface ApplicationService {
     List<Application> getTrackedApplications();
     List<Application> getAllApplications();
+    List<Category> getCategories(Application target);
     void addCategory(Application target, Category category);
     void removeCategory(Application target, Category category);
     void setApplicationTracked(Application target, Boolean tracked);

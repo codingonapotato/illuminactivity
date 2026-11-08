@@ -34,6 +34,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public List<Category> getCategories(Application target) {
+        return applicationCategoryRepository.getActiveApplicationCategories(target.getPath());
+    }
+
+    @Override
     @Transactional 
     public void addCategory(Application target, Category category) {
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
@@ -46,9 +51,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
             applicationCategory.setDeletedAt(null);
         }
-        
-        target.getApplicationCategories().add(applicationCategory);
-        category.getCategoryApplications().add(applicationCategory);
+
         applicationCategoryRepository.save(applicationCategory);
     }
 
@@ -62,9 +65,6 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw new InactiveApplicationCategoryException(applicationCategory);
         
         applicationCategory.setDeletedAt(Instant.now());
-
-        target.getApplicationCategories().remove(applicationCategory);
-        category.getCategoryApplications().remove(applicationCategory);
         applicationCategoryRepository.save(applicationCategory);
     }
 

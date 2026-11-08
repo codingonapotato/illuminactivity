@@ -1,14 +1,11 @@
 package com.codingonapotato.illuminactivity.application;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import com.codingonapotato.illuminactivity.application.exception.InvalidPathException;
 import com.codingonapotato.illuminactivity.application.exception.InvalidProductNameException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 
 @Entity 
 public class Application {
@@ -19,9 +16,6 @@ public class Application {
     private String productName;
     
     private Boolean tracked;
-
-    @OneToMany(mappedBy = "application")
-    private List<ApplicationHasCategory> applicationCategories = new ArrayList<>();
 
     // See https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry
     public static int MAX_PATH_LENGTH = 32767;
@@ -61,10 +55,6 @@ public class Application {
 
     public void setTracked(Boolean tracked) {
         this.tracked = tracked;
-    }
-
-    public List<ApplicationHasCategory> getApplicationCategories() {
-        return this.applicationCategories;
     }
 
     private static void validatePath(String path) {
