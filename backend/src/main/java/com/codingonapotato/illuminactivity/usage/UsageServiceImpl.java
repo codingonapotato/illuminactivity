@@ -42,7 +42,7 @@ public class UsageServiceImpl implements UsageService {
     }
 
     @Override
-    @Transactional 
+    @Transactional
     public void addUsage(Application app, Category category, Instant start, Instant end) {
         ApplicationHasCategory.PK applicationCategoryPK = new ApplicationHasCategory.PK(app.getPath(), category.getName());
         ApplicationHasCategory applicationHasCategory = applicationCategoryRepository.getReferenceById(applicationCategoryPK);
@@ -70,6 +70,15 @@ public class UsageServiceImpl implements UsageService {
         usageRepository.flush();
 
         usageRepository.save(new Usage(usage.getApplicationCategory(), start, end));
+    }
+
+    @Override
+    @Transactional
+    public void updateUsage(Usage usage, Instant start, Instant end, ApplicationHasCategory applicationCategory) {
+        Usage.validateInput(applicationCategory, start, end);
+        usageRepository.delete(usage);
+        usageRepository.flush();
+        usageRepository.save(new Usage(applicationCategory, start, end));
     }
 
     @Override 

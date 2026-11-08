@@ -192,6 +192,56 @@ public class UsageServiceImplTests {
             assertEquals(start, usageRepository.findById(newPK).orElseThrow().getPK().getStartTime());
             assertEquals(end, usageRepository.findById(newPK).orElseThrow().getEndTime());
         }
+
+        @Test
+        @DisplayName("should update usage with a different application category")
+        void shouldUpdateApplicationCategory() {
+            Category replacementCategory = new Category("Replacement", "#000000");
+            ApplicationHasCategory replacementApplicationCategory =
+                new ApplicationHasCategory(seedApplication, replacementCategory);
+            entityManager.persist(replacementCategory);
+            entityManager.persist(replacementApplicationCategory);
+
+            Usage target = seedUsages.get(0);
+            Instant start = firstStart.plus(1, ChronoUnit.HOURS);
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
+            Usage.PK oldPK = target.getPK();
+            Usage.PK newPK = new Usage.PK(replacementApplicationCategory.getPk(), start);
+
+            usageService.updateUsage(target, start, end, replacementApplicationCategory);
+
+            assertFalse(usageRepository.existsById(oldPK));
+            Usage updated = usageRepository.findById(newPK).orElseThrow();
+            assertEquals(replacementApplicationCategory, updated.getApplicationCategory());
+            assertEquals(end, updated.getEndTime());
+        }
+
+        @Test
+        @DisplayName("should reject an end time before the new start time")
+        void shouldRejectEndBeforeStartWhenUpdatingApplicationCategory() {
+            Usage target = seedUsages.get(0);
+            Instant start = firstStart.plus(1, ChronoUnit.HOURS);
+            Instant end = start.minus(1, ChronoUnit.MINUTES);
+
+            assertThrows(UsageDateTimeException.class,
+                () -> usageService.updateUsage(target, start, end, seedApplicationCategory));
+
+            assertTrue(usageRepository.existsById(target.getPK()));
+        }
+
+        @Test
+        @DisplayName("should reject an inactive replacement application category")
+        void shouldRejectInactiveApplicationCategoryWhenUpdating() {
+            seedApplicationCategory.setDeletedAt(Instant.now());
+            Usage target = seedUsages.get(0);
+            Instant start = firstStart.plus(1, ChronoUnit.HOURS);
+            Instant end = start.plus(10, ChronoUnit.MINUTES);
+
+            assertThrows(InactiveApplicationCategoryException.class,
+                () -> usageService.updateUsage(target, start, end, seedApplicationCategory));
+
+            assertTrue(usageRepository.existsById(target.getPK()));
+        }
     }
 
     @Nested
