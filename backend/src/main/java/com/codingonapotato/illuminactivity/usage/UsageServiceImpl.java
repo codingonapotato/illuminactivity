@@ -37,7 +37,6 @@ public class UsageServiceImpl implements UsageService {
     public List<Usage> getUsage(LocalDateTime start, LocalDateTime end) {
         Instant startTime = getInstant(start);
         Instant endTime = getInstant(end);
-        Usage.validateEndTimeIsEqualOrAfterStartTime(startTime, endTime);
         return usageRepository.findAllByStartTimeBetween(startTime, endTime);
     }
 

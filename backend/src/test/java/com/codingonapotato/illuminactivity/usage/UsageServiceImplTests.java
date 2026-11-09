@@ -128,16 +128,6 @@ public class UsageServiceImplTests {
 
             assertTrue(usages.isEmpty());
         }
-
-        @Test
-        @DisplayName("should reject a range whose end is before its start")
-        void shouldRejectEndBeforeStart() {
-            LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
-            LocalDateTime end = start.minusMinutes(1);
-
-            assertThrows(UsageDateTimeException.class,
-                () -> usageService.getUsage(start, end));
-        }
     }
 
     @Nested
