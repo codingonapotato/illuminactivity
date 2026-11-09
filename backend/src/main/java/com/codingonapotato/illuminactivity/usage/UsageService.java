@@ -10,17 +10,17 @@ import com.codingonapotato.illuminactivity.category.Category;
 
 public interface UsageService {
     /**
-     * 
+     * Find and return a list of all Usage records who's startTime is on the supplied date
      * @param date
-     * @return List of Usage records for the supplied date
+     * @return List of Usage records that start on the supplied date
      */
     List<Usage> getUsage(LocalDate date);
 
     /**
-     * 
+     * Find and return a list of all Usage records who's startTime is between the specified time range
      * @param start
      * @param end
-     * @return List of Usage records that fall between start and end time
+     * @return List of Usage records that start within the specified time range
      */
     List<Usage> getUsage(LocalDateTime start, LocalDateTime end);
 

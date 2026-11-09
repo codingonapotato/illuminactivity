@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -53,10 +54,14 @@ public class UsageServiceImplTests {
 
     private Instant firstStart = Instant.parse("2026-01-01T10:50:00Z");
 
+    private Instant crossDayStart = firstStart.atZone(ZoneId.systemDefault()).toLocalDate()
+        .atTime(LocalTime.of(23, 55)).atZone(ZoneId.systemDefault()).toInstant();
+
     private List<Usage> seedUsages = List.of(
         new Usage(seedApplicationCategory, firstStart, firstStart.plusSeconds(5)),
         new Usage(seedApplicationCategory, firstStart.plusSeconds(5), firstStart.plusSeconds(6)),
-        new Usage(seedApplicationCategory, firstStart.plus(1, ChronoUnit.DAYS), firstStart.plus(1, ChronoUnit.DAYS).plus(5, ChronoUnit.MINUTES))
+        new Usage(seedApplicationCategory, firstStart.plus(1, ChronoUnit.DAYS), firstStart.plus(1, ChronoUnit.DAYS).plus(5, ChronoUnit.MINUTES)),
+        new Usage(seedApplicationCategory, crossDayStart, crossDayStart.plus(10, ChronoUnit.MINUTES))
     );
 
     @BeforeEach
@@ -79,13 +84,15 @@ public class UsageServiceImplTests {
     class GetUsageByDateTests {
 
         @Test
-        @DisplayName("should return usage for the specified date")
+        @DisplayName("should return usage that starts on the specified date")
         void shouldReturnUsageForDate() {
-            int expectedSize = 2;
+            int expectedSize = 3;
             LocalDate targetDate = firstStart.atZone(ZoneId.systemDefault()).toLocalDate();
             List<Usage> usages = usageService.getUsage(targetDate);
 
             assertEquals(expectedSize, usages.size());
+            assertTrue(usages.stream()
+                .anyMatch((usage) -> usage.getPK().getStartTime().equals(crossDayStart)));
             usages.forEach((usage) -> {
                 assertTrue(usage.getPK().getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(targetDate));
             });
@@ -96,15 +103,18 @@ public class UsageServiceImplTests {
     class GetUsageBetweenDateTimesTests {
 
         @Test
-        @DisplayName("should return usage within the specified date-time range")
+        @DisplayName("should return usage that starts within the specified date-time range")
         void shouldReturnUsageBetweenDateTimes() {
             LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
-            LocalDateTime end = start.plusDays(1).plusHours(1);
+            LocalDateTime end = crossDayStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
 
             List<Usage> usages = usageService.getUsage(start, end);
 
-            assertEquals(seedUsages.size(), usages.size());
-            seedUsages.forEach((seedUsage) -> assertTrue(usages.contains(seedUsage)));
+            assertEquals(3, usages.size());
+            assertTrue(usages.contains(seedUsages.get(0)));
+            assertTrue(usages.contains(seedUsages.get(1)));
+            assertTrue(usages.contains(seedUsages.get(3)));
+            assertFalse(usages.contains(seedUsages.get(2)));
         }
 
         @Test

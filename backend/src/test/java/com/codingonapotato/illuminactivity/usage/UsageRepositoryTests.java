@@ -45,7 +45,8 @@ public class UsageRepositoryTests {
     private List<Usage> seed = List.of(
         new Usage(applicationHasCategories.get(0), startTime, startTime),
         new Usage(applicationHasCategories.get(1), startTime.plusSeconds(1), startTime.plusSeconds(1)),
-        new Usage(applicationHasCategories.get(2), startTime.plusSeconds(2), startTime.plusSeconds(2))
+        new Usage(applicationHasCategories.get(2), startTime.plusSeconds(2), startTime.plusSeconds(2)),
+        new Usage(applicationHasCategories.get(0), startTime.plusSeconds(3), startTime.plusSeconds(10))
     );
 
     @BeforeEach 
@@ -64,18 +65,19 @@ public class UsageRepositoryTests {
         categories.forEach(entityManager::remove);
     }
 
-    @Nested 
-    class FindAllByStartAndEndTimeBetweenTests {
+    @Nested
+    class FindAllByStartTimeBetweenTests {
         @Test
-        @DisplayName("returns all Usage entities with a startTime between the queried startTime and endTime")
-        void shouldFindAllUsageBetweenStartAndEndTime() {
-            int expectedSize = 1;
-            List<Usage> usages = repository.findAllByStartAndEndTimeBetween(startTime, startTime);
+        @DisplayName("returns all Usage entities with a startTime in the queried range")
+        void shouldFindAllUsageByStartTimeBetween() {
+            Instant endTime = startTime.plusSeconds(3);
 
-            assertEquals(usages.size(), expectedSize);
+            List<Usage> usages = repository.findAllByStartTimeBetween(startTime, endTime);
+            int expectedSize = 4;
+            assertEquals(expectedSize, usages.size());
             usages.forEach((usage) -> {
                 Instant usageStartTime = usage.getPK().getStartTime();
-                assertTrue(usageStartTime.equals(startTime) || usageStartTime.isAfter(startTime));
+                assertTrue(!usageStartTime.isBefore(startTime) && !usageStartTime.isAfter(endTime));
             });
         }
     }
