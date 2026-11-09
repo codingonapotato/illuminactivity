@@ -62,17 +62,17 @@ public class CategoryServiceImplTests {
 
     @Nested
     class GetCategoriesTests {
-        
-        @Test 
-        @DisplayName("should return all categories")
-        void shouldReturnAllCategories() {
-            int expectedSize = seedCategories.size();
+        @Test
+        @DisplayName("should return active categories")
+        void shouldReturnActiveCategories() {
+            Category inactiveCategory = seedCategories.get(2);
+            inactiveCategory.setDeletedAt(Instant.now());
+            entityManager.flush();
+
             List<Category> categories = categoryService.getCategories();
-            
-            assertEquals(categories.size(), expectedSize);
-            seedCategories.forEach((seedCategory) -> {
-                assertTrue(categories.contains(seedCategory));
-            });
+
+            assertEquals(seedCategories.size() - 1, categories.size());
+            assertFalse(categories.contains(inactiveCategory));
         }
     }
 
@@ -142,6 +142,20 @@ public class CategoryServiceImplTests {
             } catch (Exception e) {
                 fail("Should not have thrown exception");
             }
+        }
+
+        @Test
+        @DisplayName("should update only category colour")
+        void shouldUpdateCategoryColourWithoutChangingName() {
+            Category target = seedCategories.get(0);
+            String name = target.getName();
+            String newColour = "#FFFFFF";
+
+            categoryService.editCategory(target, name, newColour);
+
+            Category updated = repository.findById(name).orElseThrow();
+            assertEquals(name, updated.getName());
+            assertEquals(newColour, updated.getColour());
         }
 
         @Test 

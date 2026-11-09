@@ -108,6 +108,18 @@ public class UsageServiceImplTests {
         }
 
         @Test
+        @DisplayName("should exclude usage outside the specified date-time range")
+        void shouldExcludeUsageOutsideDateTimeRange() {
+            LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime()
+                .plusSeconds(6);
+            LocalDateTime end = start.plusSeconds(1);
+
+            List<Usage> usages = usageService.getUsage(start, end);
+
+            assertTrue(usages.isEmpty());
+        }
+
+        @Test
         @DisplayName("should reject a range whose end is before its start")
         void shouldRejectEndBeforeStart() {
             LocalDateTime start = firstStart.atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -154,6 +166,19 @@ public class UsageServiceImplTests {
             Instant end = start.plus(10, ChronoUnit.MINUTES);
 
             assertThrows(InactiveApplicationCategoryException.class,
+                () -> usageService.addUsage(seedApplication, seedCategory, start, end));
+
+            Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);
+            assertFalse(usageRepository.existsById(pk));
+        }
+
+        @Test
+        @DisplayName("should reject usage whose end time is before its start time")
+        void shouldRejectEndBeforeStart() {
+            Instant start = firstStart.plus(2, ChronoUnit.DAYS);
+            Instant end = start.minus(1, ChronoUnit.MINUTES);
+
+            assertThrows(UsageDateTimeException.class,
                 () -> usageService.addUsage(seedApplication, seedCategory, start, end));
 
             Usage.PK pk = new Usage.PK(seedApplicationCategory.getPk(), start);

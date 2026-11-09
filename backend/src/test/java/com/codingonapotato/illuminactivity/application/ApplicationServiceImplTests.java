@@ -172,6 +172,23 @@ public class ApplicationServiceImplTests {
             assertNull(
                 applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
         }
+
+        @Test
+        @DisplayName("should reactivate a soft-deleted application-category relationship")
+        void shouldReactivateSoftDeletedCategoryRelationship() {
+            Application target = seedApplications.get(0);
+            Category seedCategory = seedCategories.get(0);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, seedCategory);
+            applicationCategory.setDeletedAt(Instant.now());
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            applicationService.addCategory(target, seedCategory);
+
+            assertNull(
+                applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
+        }
     }
 
     @Nested

@@ -9,10 +9,50 @@ import com.codingonapotato.illuminactivity.application.ApplicationHasCategory;
 import com.codingonapotato.illuminactivity.category.Category;
 
 public interface UsageService {
+    /**
+     * 
+     * @param date
+     * @return List of Usage records for the supplied date
+     */
     List<Usage> getUsage(LocalDate date);
+
+    /**
+     * 
+     * @param start
+     * @param end
+     * @return List of Usage records that fall between start and end time
+     */
     List<Usage> getUsage(LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Create a new Usage record
+     * @param app
+     * @param category
+     * @param start
+     * @param end
+     */
     void addUsage(Application app, Category category, Instant start, Instant end);
+
+    /**
+     * Update the target Usage record
+     * @param usage
+     * @param start
+     * @param end
+     * @param applicationCategory
+     */
     void updateUsage(Usage usage, Instant start, Instant end, ApplicationHasCategory applicationCategory);
+
+    /**
+     * Update the target Usage record
+     * @param usage
+     * @param start
+     * @param end
+     */
     void updateUsage(Usage usage, Instant start, Instant end);
+
+    /**
+     * Delete the target Usage record
+     * @param usage
+     */
     void deleteUsage(Usage usage);
 }
