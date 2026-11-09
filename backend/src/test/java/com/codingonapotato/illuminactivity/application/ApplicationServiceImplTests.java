@@ -21,6 +21,7 @@ import com.codingonapotato.illuminactivity.application.exception.DuplicateApplic
 import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 import com.codingonapotato.illuminactivity.category.CategoryRepository;
+import com.codingonapotato.illuminactivity.category.exception.InactiveCategoryException;
 
 @DataJpaTest
 @Import(ApplicationServiceImpl.class)
@@ -123,13 +124,13 @@ public class ApplicationServiceImplTests {
         void shouldNotReturnActiveApplicationCategoryPairForInactiveCategories() {
             Application target = seedApplications.get(0);
             Category inactiveCategory = seedCategories.get(1);
-            inactiveCategory.setDeletedAt(Instant.now());
-            entityManager.persist(inactiveCategory);
 
             ApplicationHasCategory applicationCategory1 =
                 new ApplicationHasCategory(target, seedCategories.get(0));
             ApplicationHasCategory applicationCategory2 =
                 new ApplicationHasCategory(target, inactiveCategory);
+            inactiveCategory.setDeletedAt(Instant.now());
+            entityManager.persist(inactiveCategory);
             entityManager.persist(applicationCategory1);
             entityManager.persist(applicationCategory2);
             entityManager.flush();
@@ -171,6 +172,21 @@ public class ApplicationServiceImplTests {
             assertTrue(applicationCategoryRepository.existsById(applicationCategory.getPk()));
             assertNull(
                 applicationCategoryRepository.findById(applicationCategory.getPk()).get().getDeletedAt());
+        }
+
+        @Test
+        @DisplayName("should fail to add an inactive category")
+        void shouldRejectInactiveCategory() {
+            Application target = seedApplications.get(0);
+            Category inactiveCategory = seedCategories.get(1);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, inactiveCategory);
+            inactiveCategory.setDeletedAt(Instant.now());
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            assertThrows(InactiveCategoryException.class,
+                () -> applicationService.addCategory(target, inactiveCategory));
         }
 
         @Test

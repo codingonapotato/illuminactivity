@@ -36,7 +36,6 @@ public class ApplicationHasCategoryRepositoryTests {
 
     @BeforeEach
     void setup() {
-        deletedCategory.setDeletedAt(Instant.now());
         entityManager.persist(firstApplication);
         entityManager.persist(secondApplication);
         entityManager.persist(activeCategory);
@@ -51,7 +50,10 @@ public class ApplicationHasCategoryRepositoryTests {
         deletedRelationship.setDeletedAt(Instant.now());
         entityManager.persist(deletedRelationship);
 
-        entityManager.persist(new ApplicationHasCategory(firstApplication, deletedCategory));
+        ApplicationHasCategory deletedCategoryRelationship =
+            new ApplicationHasCategory(firstApplication, deletedCategory);
+        deletedCategory.setDeletedAt(Instant.now());
+        entityManager.persist(deletedCategoryRelationship);
         entityManager.flush();
     }
 
