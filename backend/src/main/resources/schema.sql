@@ -6,12 +6,14 @@ CREATE TABLE IF NOT EXISTS Application(
 
 CREATE TABLE IF NOT EXISTS Category(
     name VARCHAR PRIMARY KEY, 
-    colour VARCHAR
+    colour VARCHAR,
+    deleted_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS ApplicationHasCategory(
     path VARCHAR,
     category VARCHAR,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     PRIMARY KEY (path, category),
     FOREIGN KEY (path) REFERENCES Application(path)
         ON DELETE CASCADE
@@ -24,8 +26,8 @@ CREATE TABLE IF NOT EXISTS ApplicationHasCategory(
 CREATE TABLE IF NOT EXISTS ApplicationCategoryUsage(
     path VARCHAR,
     category VARCHAR,
-    start_time TIMESTAMP,
-    end_time TIMESTAMP NOT NULL,
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY (path, category, start_time),
     FOREIGN KEY (path, category) REFERENCES ApplicationHasCategory(path, category)
         ON DELETE CASCADE
