@@ -24,7 +24,7 @@ public class ProcessServiceImpl implements ProcessService {
 
     private Predicate<OSProcess> getUserProcessPredicate() {
         String currentUser = System.getProperty("user.name");
-        Predicate<OSProcess> filter = p -> p.getPath().length() > 1 && p.getUser().equals(currentUser);
+        Predicate<OSProcess> filter = p -> p.getPath().length() >= 1 && p.getUser().equals(currentUser);
 
         return filter;
     }
