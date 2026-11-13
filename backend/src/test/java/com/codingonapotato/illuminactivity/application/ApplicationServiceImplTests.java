@@ -17,11 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.codingonapotato.illuminactivity.application.exception.DuplicateApplicationCategoryException;
 import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 import com.codingonapotato.illuminactivity.category.CategoryRepository;
 import com.codingonapotato.illuminactivity.category.exception.InactiveCategoryException;
+import com.codingonapotato.illuminactivity.process.ProcessService;
 
 @DataJpaTest
 @Import(ApplicationServiceImpl.class)
@@ -38,6 +40,9 @@ public class ApplicationServiceImplTests {
 
     @Autowired
     private ApplicationHasCategoryRepository applicationCategoryRepository;
+
+    @MockitoBean
+    private ProcessService processService;
 
     @Autowired
     private TestEntityManager entityManager;
