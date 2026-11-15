@@ -139,7 +139,7 @@ public class ApplicationServiceImplTests {
             assertTrue(expectedSize == applications.size());
             applications.forEach(application -> {
                 assertTrue(seedApplications.contains(application) || 
-                    (application.getPath().equals(mockPath) && application.getProductName().equals(mockName))
+                    (application.getPath().equals(mockPath) && application.getProductName().equals(mockName)));
             });
         }
 

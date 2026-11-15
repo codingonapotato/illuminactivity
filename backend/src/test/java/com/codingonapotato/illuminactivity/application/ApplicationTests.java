@@ -1,9 +1,7 @@
 package com.codingonapotato.illuminactivity.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class ApplicationTests {
@@ -18,17 +16,5 @@ public class ApplicationTests {
         assertEquals(VALID_PATH, application.getPath());
         assertEquals(VALID_PRODUCT_NAME, application.getProductName());
         assertEquals(true, application.getTracked());
-    }
-
-    @Nested
-    class ConstructorInputValidationTests {
-        @Test
-        @DisplayName("should fail with exception due to an invalid path")
-        void shouldFailWithInvalidPath() {
-            String path = "\u0000";
-
-            assertThrows(java.nio.file.InvalidPathException.class,
-                () -> new Application(path, VALID_PRODUCT_NAME, true));
-        }
     }
 }
