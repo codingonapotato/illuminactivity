@@ -1,6 +1,7 @@
 package com.codingonapotato.illuminactivity.application;
 
 import java.nio.file.Path;
+import java.util.Objects;
 import com.codingonapotato.illuminactivity.application.exception.InvalidPathException;
 import com.codingonapotato.illuminactivity.application.exception.InvalidProductNameException;
 import jakarta.persistence.Column;
@@ -71,5 +72,20 @@ public class Application {
     public static void validateInput(String path, String productName) {
         validatePath(path);
         validateProductName(productName);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Application that = (Application) o;
+        return Objects.equals(path, that.path) && 
+            Objects.equals(productName, that.productName) &&
+            Objects.equals(tracked, that.tracked);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, productName, tracked);
     }
 }
