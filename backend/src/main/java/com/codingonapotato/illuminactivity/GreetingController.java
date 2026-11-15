@@ -1,19 +1,22 @@
 package com.codingonapotato.illuminactivity;
 
-import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.codingonapotato.illuminactivity.application.Application;
+import com.codingonapotato.illuminactivity.application.ApplicationService;
 
 @RestController
 public class GreetingController {
+  private final ApplicationService applicationService;
 
-  private static final String template = "Hello, %s!";
-  private final AtomicLong counter = new AtomicLong();
+  public GreetingController(ApplicationService applicationService) {
+    this.applicationService = applicationService;
+  }
 
-  @GetMapping("/greeting")
-  public Greeting greeting(@RequestParam(defaultValue = "World") String name) {
-    return new Greeting(counter.incrementAndGet(), template.formatted(name));
+  @GetMapping("/apps")
+  public List<Application> greeting(@RequestParam(defaultValue = "World") String name) {
+    return applicationService.getAllApplications();
   }
 }

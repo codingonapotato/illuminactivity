@@ -1,8 +1,6 @@
 package com.codingonapotato.illuminactivity.application;
 
-import java.nio.file.Path;
-import com.codingonapotato.illuminactivity.application.exception.InvalidPathException;
-import com.codingonapotato.illuminactivity.application.exception.InvalidProductNameException;
+import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -16,16 +14,10 @@ public class Application {
     private String productName;
     
     private Boolean tracked;
-
-    // See https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry
-    public static int MAX_PATH_LENGTH = 32767;
-
-    public static int MAX_PRODUCT_NAME_LENGTH = 50;
     
     protected Application() {}
 
     public Application(String path, String productName, Boolean tracked) {
-        validateInput(path, productName);
         this.path = path;
         this.productName = productName;
         this.tracked = tracked;
@@ -35,18 +27,8 @@ public class Application {
         return this.path;
     }
 
-    public void setPath(String path) {
-        validatePath(path);
-        this.path = path;
-    }
-
     public String getProductName() {
         return this.productName;
-    }
-
-    public void setProductName(String productName) {
-        validateProductName(productName);
-        this.productName = productName;
     }
 
     public Boolean getTracked() {
@@ -57,19 +39,18 @@ public class Application {
         this.tracked = tracked;
     }
 
-    private static void validatePath(String path) {
-        if (path.length() > MAX_PATH_LENGTH)
-            throw new InvalidPathException();
-        Path.of(path);       
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Application that = (Application) o;
+        return Objects.equals(path, that.path) && 
+            Objects.equals(productName, that.productName) &&
+            Objects.equals(tracked, that.tracked);
     }
 
-    private static void validateProductName(String productName) {
-        if (productName.length() > MAX_PRODUCT_NAME_LENGTH)
-            throw new InvalidProductNameException();
-    }
-
-    public static void validateInput(String path, String productName) {
-        validatePath(path);
-        validateProductName(productName);
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, productName, tracked);
     }
 }

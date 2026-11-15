@@ -11,8 +11,8 @@ public interface ApplicationService {
     List<Application> getTrackedApplications();
 
     /**
-     * Return a list of all applications running on the host machiine
-     * @return
+     * Return a list of all applications running on the host machine that belong to the user sorted in ascending order of application name
+     * @return List of application sorted by application name belonging to the user
      */
     List<Application> getAllApplications();
 

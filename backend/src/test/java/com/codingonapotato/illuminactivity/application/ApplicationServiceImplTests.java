@@ -6,7 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +21,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import com.codingonapotato.illuminactivity.application.exception.DuplicateApplicationCategoryException;
 import com.codingonapotato.illuminactivity.application.exception.InactiveApplicationCategoryException;
 import com.codingonapotato.illuminactivity.category.Category;
 import com.codingonapotato.illuminactivity.category.CategoryRepository;
 import com.codingonapotato.illuminactivity.category.exception.InactiveCategoryException;
+import com.codingonapotato.illuminactivity.process.ProcessService;
+import oshi.software.os.OSProcess;
 
 @DataJpaTest
 @Import(ApplicationServiceImpl.class)
@@ -39,8 +49,14 @@ public class ApplicationServiceImplTests {
     @Autowired
     private ApplicationHasCategoryRepository applicationCategoryRepository;
 
+    @MockitoBean
+    private ProcessService processService;
+
     @Autowired
     private TestEntityManager entityManager;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private List<Application> seedApplications = List.of(
         new Application("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "Google Chrome", true),
@@ -55,15 +71,19 @@ public class ApplicationServiceImplTests {
 
     @BeforeEach
     void setup() {
-        seedApplications.forEach(entityManager::persist);
-        seedCategories.forEach(entityManager::persist);
+        transactionTemplate.executeWithoutResult(status -> {
+            seedApplications.forEach(entityManager::persist);
+            seedCategories.forEach(entityManager::persist);
+        });
     }
 
     @AfterEach
     void teardown() {
-        applicationCategoryRepository.deleteAll();
-        applicationRepository.deleteAll();
-        categoryRepository.deleteAll();
+        transactionTemplate.executeWithoutResult(status -> {
+            applicationCategoryRepository.deleteAll();
+            applicationRepository.deleteAll();
+            categoryRepository.deleteAll();
+        });
     }
 
     @Nested
@@ -84,17 +104,65 @@ public class ApplicationServiceImplTests {
             });
         }
     }
+    
+    @Nested
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    class GetAllApplicationsTests {        
+        @Test
+        @DisplayName("should return seed applications")
+        void shouldReturnSeedApplications() {
+            when(processService.getUserProcesses()).thenReturn(List.of());
 
-    // TODO: Postponed to KAN-17
-    // @Nested
-    // class GetAllApplicationsTests {
+            List<Application> applications = applicationService.getAllApplications();
+            List<Application> copySeedApplications = new ArrayList<>(seedApplications);
+            copySeedApplications.sort(Comparator.comparing(Application::getProductName, String.CASE_INSENSITIVE_ORDER));
+            
+            assertTrue(copySeedApplications.size() == applications.size());
+            assertEquals(copySeedApplications, applications);
+        }
+        
+        @Test
+        @DisplayName("should return all applications (no duplicates)")
+        void shouldReturnAllApplicationsNoDuplicates() {
+            String mockPath = "C://mock";
+            String mockName = "mock app";
+            
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(mockPath);
+            when(mockProcess.getName()).thenReturn(mockName);
 
-    //     @Test
-    //     @DisplayName("should return no applications")
-    //     void shouldReturnNoApplications() {
-    //         assertTrue(applicationService.getAllApplications().isEmpty());
-    //     }
-    // }
+            when(processService.getUserProcesses()).thenReturn(List.of(mockProcess));
+
+            List<Application> applications = applicationService.getAllApplications();
+
+            int expectedSize = seedApplications.size() + 1;
+            assertTrue(expectedSize == applications.size());
+            applications.forEach(application -> {
+                assertTrue(seedApplications.contains(application) || 
+                    (application.getPath().equals(mockPath) && application.getProductName().equals(mockName)));
+            });
+        }
+
+        @Test
+        @DisplayName("should return all applications (with duplicates)")
+        void shouldReturnAllApplicationsWithDuplicates() {
+            String mockPath = seedApplications.getFirst().getPath();
+            String mockName = seedApplications.getFirst().getProductName();
+            
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(mockPath);
+            when(mockProcess.getName()).thenReturn(mockName);
+
+            when(processService.getUserProcesses()).thenReturn(List.of(mockProcess));
+
+            List<Application> applications = applicationService.getAllApplications();
+            List<Application> copySeedApplications = new ArrayList<>(seedApplications);
+            copySeedApplications.sort(Comparator.comparing(Application::getProductName, String.CASE_INSENSITIVE_ORDER));
+        
+            assertTrue(copySeedApplications.size() == applications.size());
+            assertEquals(copySeedApplications, applications);
+        }
+    }
 
     @Nested
     class GetCategoriesTests {
