@@ -64,6 +64,21 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public Application getForegroundApplication() {
+        CompletableFuture<OSProcess> processFuture = CompletableFuture.supplyAsync(processService::getForegroundProcess)
+                                                                        .thenApply(optional -> optional.get());
+        CompletableFuture<List<Application>> applicationsFuture = CompletableFuture.supplyAsync(this::getAllApplications);
+
+        OSProcess process = processFuture.join();
+        List<Application> applications = applicationsFuture.join();
+        String processPath = process.getPath();
+
+        return applications.stream().filter(a -> a.getPath().equals(processPath))
+                                    .toList()
+                                    .getFirst();
+    }   
+
+    @Override
     public List<Category> getCategories(Application target) {
         return applicationCategoryRepository.getActiveApplicationCategories(target.getPath());
     }

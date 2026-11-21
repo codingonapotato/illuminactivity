@@ -16,6 +16,8 @@ public interface ApplicationService {
      */
     List<Application> getAllApplications();
 
+    Application getForegroundApplication();
+
     /**
      * Return a list of active categories with an active application-category pair for the target application
      * @param target

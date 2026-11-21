@@ -22,6 +22,7 @@ public class TrackerServiceImpl implements TrackerService {
     
     @Scheduled(fixedDelay = POLLING_INTERVAL_SECONDS, timeUnit = TimeUnit.SECONDS)
     public void trackUsage() {
-        System.out.println("Yeehaw");
+        Application foregroundApp = applicationService.getForegroundApplication();
+        System.out.println(foregroundApp.getProductName());
     }
 }
