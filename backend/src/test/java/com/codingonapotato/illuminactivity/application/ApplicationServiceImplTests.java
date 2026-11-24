@@ -183,7 +183,7 @@ public class ApplicationServiceImplTests {
             entityManager.persist(inactiveApplicationCategory);
             entityManager.flush();
 
-            List<Category> categories = applicationService.getCategories(target);
+            List<Category> categories = applicationService.getActiveCategories(target);
             assertEquals(List.of(seedCategory1), categories);
         }
 
@@ -203,7 +203,7 @@ public class ApplicationServiceImplTests {
             entityManager.persist(applicationCategory2);
             entityManager.flush();
 
-            List<Category> categories = applicationService.getCategories(target);
+            List<Category> categories = applicationService.getActiveCategories(target);
             assertEquals(List.of(seedCategories.get(0)), categories);
         }
     }

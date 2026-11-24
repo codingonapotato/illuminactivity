@@ -79,8 +79,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }   
 
     @Override
-    public List<Category> getCategories(Application target) {
+    public List<Category> getActiveCategories(Application target) {
         return applicationCategoryRepository.getActiveApplicationCategories(target.getPath());
+    }
+
+    @Override
+    public List<Category> getAllCategories(Application target) {
+        return applicationCategoryRepository.getAllApplicationCategories(target.getPath());
     }
 
     @Override

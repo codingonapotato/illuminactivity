@@ -23,7 +23,14 @@ public interface ApplicationService {
      * @param target
      * @return List of active categories
      */
-    List<Category> getCategories(Application target);
+    List<Category> getActiveCategories(Application target);
+
+    /**
+     * Return a list of all categories for the target application regardless of whether the application-category pair is active
+     * @param target
+     * @return List of active categories
+     */
+    List<Category> getAllCategories(Application target);
 
     /**
      * Create a new relationship between the target application and category
