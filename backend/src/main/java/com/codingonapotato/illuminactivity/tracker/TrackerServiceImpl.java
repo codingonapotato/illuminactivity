@@ -43,15 +43,15 @@ public class TrackerServiceImpl implements TrackerService {
         Application foregroundApp = applicationService.getForegroundApplication();
         
         if (foregroundApp.getTracked() && foregroundApp.equals(lastSeenApp)) {
-            List<Category> categories = applicationService.getAllCategories(lastSeenApp);
+            List<Category> activeCategories = applicationService.getActiveCategories(lastSeenApp);
             Set<String> latestCategoryNames = new HashSet<>(
-                categories.stream().map(category -> category.getName()).toList()
+                activeCategories.stream().map(category -> category.getName()).toList()
             );
 
             if (latestCategoryNames.equals(categoryNames)) 
                 return;
 
-            handleUpdatedApplicationCategories(latestCategoryNames, categories);
+            handleUpdatedApplicationCategories(latestCategoryNames);
             return;
         }
         
@@ -72,7 +72,8 @@ public class TrackerServiceImpl implements TrackerService {
      * @param latestCategoryNames
      * @param categories
      */
-    private void handleUpdatedApplicationCategories(Set<String> latestCategoryNames, List<Category> categories) {
+    private void handleUpdatedApplicationCategories(Set<String> latestCategoryNames) {
+        List<Category> categories = applicationService.getAllCategories(lastSeenApp);
         List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !categoryNames.contains(name)).toList();
         List<String> removedCategoryNames = categoryNames.stream().filter(name -> !latestCategoryNames.contains(name)).toList();
         
