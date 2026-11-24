@@ -79,4 +79,20 @@ public class ApplicationHasCategoryRepositoryTests {
             assertTrue(categories.contains(activeCategory));
         }
     }
+
+    @Nested
+    class GetAllApplicationCategoriesTests {
+
+        @Test
+        @DisplayName("should return all categories for the requested application")
+        void shouldReturnAllCategoriesForApplication() {
+            List<Category> categories =
+                repository.getAllApplicationCategories(firstApplication.getPath());
+
+            assertEquals(3, categories.size());
+            assertTrue(categories.contains(activeCategory));
+            assertTrue(categories.contains(deletedCategory));
+            assertTrue(categories.contains(inactiveRelationshipCategory));
+        }
+    }
 }

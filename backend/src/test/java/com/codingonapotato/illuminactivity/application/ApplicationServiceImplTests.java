@@ -165,7 +165,7 @@ public class ApplicationServiceImplTests {
     }
 
     @Nested
-    class GetCategoriesTests {
+    class GetActiveCategoriesTests {
 
         @Test
         @DisplayName("should return active application-category pairs")
@@ -205,6 +205,49 @@ public class ApplicationServiceImplTests {
 
             List<Category> categories = applicationService.getActiveCategories(target);
             assertEquals(List.of(seedCategories.get(0)), categories);
+        }
+    }
+
+    @Nested
+    class GetAllCategoriesTests {
+
+        @Test
+        @DisplayName("should return active and inactive application-category pairs")
+        void shouldReturnAllApplicationCategoryPairs() {
+            Application target = seedApplications.get(0);
+            Category seedCategory1 = seedCategories.get(0);
+            Category seedCategory2 = seedCategories.get(1);
+
+            ApplicationHasCategory activeApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory1);
+            ApplicationHasCategory inactiveApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory2);
+            inactiveApplicationCategory.setDeletedAt(Instant.now());
+            entityManager.persist(activeApplicationCategory);
+            entityManager.persist(inactiveApplicationCategory);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getAllCategories(target);
+            assertEquals(2, categories.size());
+            assertTrue(categories.contains(seedCategory1));
+            assertTrue(categories.contains(seedCategory2));
+        }
+
+        @Test
+        @DisplayName("should return categories even when the category is soft-deleted")
+        void shouldReturnCategoriesFromSoftDeletedCategory() {
+            Application target = seedApplications.get(0);
+            Category deletedCategory = seedCategories.get(1);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, deletedCategory);
+
+            deletedCategory.setDeletedAt(Instant.now());
+            entityManager.persist(deletedCategory);
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getAllCategories(target);
+            assertEquals(List.of(deletedCategory), categories);
         }
     }
 
