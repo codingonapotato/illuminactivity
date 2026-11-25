@@ -20,7 +20,9 @@ public class TrackerServiceImpl implements TrackerService {
     private final UsageService usageService;
     private final ApplicationService applicationService;
     private Application lastSeenApp;
-    private Set<String> categoryNames;
+    // (k, v) = (categoryName, seconds elapsed before the category was added)
+    private Map<String, Integer> categoryMap;
+    
     private int elapsedSeconds;
     private Instant startTime;
     
@@ -30,7 +32,7 @@ public class TrackerServiceImpl implements TrackerService {
         
         startTime = null;
         lastSeenApp = null;
-        categoryNames = new HashSet<>();
+        categoryMap = new HashMap<>();
         elapsedSeconds = 0;
     };
     
@@ -47,8 +49,8 @@ public class TrackerServiceImpl implements TrackerService {
             Set<String> latestCategoryNames = new HashSet<>(
                 activeCategories.stream().map(category -> category.getName()).toList()
             );
-
-            if (latestCategoryNames.equals(categoryNames)) 
+            Set<String> lastSeenCategories = categoryMap.keySet();
+            if (latestCategoryNames.equals(lastSeenCategories)) 
                 return;
 
             handleUpdatedApplicationCategories(latestCategoryNames);
@@ -57,9 +59,7 @@ public class TrackerServiceImpl implements TrackerService {
         
         if (lastSeenApp != null) {
             List<Category> activeCategories = applicationService.getActiveCategories(lastSeenApp);
-            activeCategories.forEach(category -> {
-                usageService.addUsage(lastSeenApp, category, startTime, startTime.plusSeconds(elapsedSeconds));
-            });
+            activeCategories.forEach(category -> writeUsage(category));
         }
         
         resetStateVariables(foregroundApp);
@@ -70,22 +70,33 @@ public class TrackerServiceImpl implements TrackerService {
      * tracked application such as writing buffered usage data for deleted categories and updating the TrackerService.categoryNames
      * set instance
      * @param latestCategoryNames
-     * @param categories
      */
     private void handleUpdatedApplicationCategories(Set<String> latestCategoryNames) {
+        Set<String> lastSeenCategories = categoryMap.keySet();
         List<Category> categories = applicationService.getAllCategories(lastSeenApp);
-        List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !categoryNames.contains(name)).toList();
-        List<String> removedCategoryNames = categoryNames.stream().filter(name -> !latestCategoryNames.contains(name)).toList();
+        List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !lastSeenCategories.contains(name)).toList();
+        List<String> removedCategoryNames = lastSeenCategories.stream().filter(name -> !latestCategoryNames.contains(name)).toList();
         
-        Map<String, Category> categoryMap = new HashMap<>();
-        categories.forEach(category -> categoryMap.put(category.getName(), category));
+        Map<String, Category> allCategoryMap = new HashMap<>();
+        categories.forEach(category -> allCategoryMap.put(category.getName(), category));
 
         removedCategoryNames.forEach(removedCategoryName -> {
-            usageService.addUsage(lastSeenApp, categoryMap.get(removedCategoryName), startTime, startTime.plusSeconds(elapsedSeconds));
+            writeUsage(allCategoryMap.get(removedCategoryName));
+            categoryMap.remove(removedCategoryName);
         });
 
-        categoryNames.removeAll(removedCategoryNames);
-        newCategoryNames.forEach(categoryNames::add);
+        newCategoryNames.forEach(newCategoryName -> categoryMap.put(newCategoryName, elapsedSeconds));
+    }
+
+    /**
+     * Write usage data for the this.lastSeenApp and the supplied category
+     * @param category
+     */
+    private void writeUsage(Category category) {
+        int offset = categoryMap.get(category.getName());
+        Instant correctedStartTime = startTime.plusSeconds(offset);
+        int correctedElapsedSeconds = elapsedSeconds - offset;
+        usageService.addUsage(lastSeenApp, category, correctedStartTime, correctedStartTime.plusSeconds(correctedElapsedSeconds));
     }
 
     /**
@@ -96,11 +107,11 @@ public class TrackerServiceImpl implements TrackerService {
         elapsedSeconds = 0;
         lastSeenApp = app.getTracked() ? app : null;
         startTime = app.getTracked() ? Instant.now() : null;
-        categoryNames.clear();
+        categoryMap.clear();
         
         if (app.getTracked()) {
             List<Category> activeCategories = applicationService.getActiveCategories(app);
-            activeCategories.forEach(category -> categoryNames.add(category.getName()));
+            activeCategories.forEach(category -> categoryMap.put(category.getName(), elapsedSeconds));
         }
     }
 }
