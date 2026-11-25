@@ -72,10 +72,10 @@ public class TrackerServiceImpl implements TrackerService {
      * @param latestCategoryNames
      */
     private void handleUpdatedApplicationCategories(Set<String> latestCategoryNames) {
-        Set<String> lastSeenCategories = categoryMap.keySet();
+        Set<String> lastSeenCategoryNames = categoryMap.keySet();
         List<Category> categories = applicationService.getAllCategories(lastSeenApp);
-        List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !lastSeenCategories.contains(name)).toList();
-        List<String> removedCategoryNames = lastSeenCategories.stream().filter(name -> !latestCategoryNames.contains(name)).toList();
+        List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !lastSeenCategoryNames.contains(name)).toList();
+        List<String> removedCategoryNames = lastSeenCategoryNames.stream().filter(name -> !latestCategoryNames.contains(name)).toList();
         
         Map<String, Category> allCategoryMap = new HashMap<>();
         categories.forEach(category -> allCategoryMap.put(category.getName(), category));
