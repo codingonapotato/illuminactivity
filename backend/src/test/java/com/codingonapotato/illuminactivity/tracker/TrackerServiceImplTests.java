@@ -168,6 +168,36 @@ public class TrackerServiceImplTests {
         }
 
         @Test
+        @DisplayName("should flush a removed category before switching to another tracked app")
+        @SuppressWarnings("unchecked")
+        void shouldFlushRemovedCategoryWhenSwitchingTrackedApps() {
+            Application appA = new Application("C:\\app-a.exe", "App A", true);
+            Application appB = new Application("C:\\app-b.exe", "App B", true);
+            Category productivity = new Category("productivity", "#eb4034");
+            Category entertainment = new Category("entertainment", "#eb4034");
+            Category focus = new Category("focus", "#eb4034");
+            when(applicationService.getForegroundApplication()).thenReturn(appA, appA, appB);
+            when(applicationService.getActiveCategories(appA))
+                .thenReturn(List.of(productivity, entertainment), List.of(productivity), List.of(productivity));
+            when(applicationService.getActiveCategories(appB)).thenReturn(List.of(focus));
+            when(applicationService.getAllCategories(appA)).thenReturn(List.of(productivity, entertainment));
+
+            trackerService.trackUsage();
+            Instant appAStartTime = getStartTime();
+            trackerService.trackUsage();
+            trackerService.trackUsage();
+
+            verify(usageService).addUsage(
+                appA, entertainment, appAStartTime, appAStartTime.plusSeconds(1));
+            verify(usageService).addUsage(
+                appA, productivity, appAStartTime, appAStartTime.plusSeconds(2));
+            assertEquals(appB, getLastSeenApp());
+            assertEquals(0, getElapsedSeconds());
+            assertNotNull(getStartTime());
+            assertEquals(Map.of(focus.getName(), 0), getCategoryMap());
+        }
+
+        @Test
         @DisplayName("should flush tracked app A and reset state for tracked app B")
         void shouldSwitchFromTrackedAppAToTrackedAppB() {
             Application appA = new Application("C:\\app-a.exe", "App A", true);

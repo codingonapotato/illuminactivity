@@ -43,26 +43,35 @@ public class TrackerServiceImpl implements TrackerService {
             elapsedSeconds += POLLING_INTERVAL_SECONDS;
         
         Application foregroundApp = applicationService.getForegroundApplication();
-        
+
         if (foregroundApp.getTracked() && foregroundApp.equals(lastSeenApp)) {
             List<Category> activeCategories = applicationService.getActiveCategories(lastSeenApp);
-            Set<String> latestCategoryNames = new HashSet<>(
-                activeCategories.stream().map(category -> category.getName()).toList()
-            );
-            Set<String> lastSeenCategories = categoryMap.keySet();
-            if (latestCategoryNames.equals(lastSeenCategories)) 
-                return;
-
-            handleUpdatedApplicationCategories(latestCategoryNames);
+            if (hasApplicationCategoriesChanged(activeCategories))
+                handleUpdatedApplicationCategories(activeCategories);
             return;
         }
         
         if (lastSeenApp != null) {
             List<Category> activeCategories = applicationService.getActiveCategories(lastSeenApp);
+            if (hasApplicationCategoriesChanged(activeCategories))
+                handleUpdatedApplicationCategories(activeCategories);
+            
             activeCategories.forEach(category -> writeUsage(category));
         }
         
-        resetStateVariables(foregroundApp);
+        updateStateVariables(foregroundApp);
+    }
+
+    /**
+     * Determine if the list of application categories for the tracked foreground app has changed
+     * @return true if list of application categories for the tracked foreground app has changed. Otherwise, false
+     */
+    private boolean hasApplicationCategoriesChanged(List<Category> activeCategories) {
+        Set<String> latestCategoryNames = new HashSet<>(
+            activeCategories.stream().map(category -> category.getName()).toList()
+        );
+        Set<String> lastSeenCategories = categoryMap.keySet();
+        return !latestCategoryNames.equals(lastSeenCategories);
     }
 
     /**
@@ -71,7 +80,10 @@ public class TrackerServiceImpl implements TrackerService {
      * set instance
      * @param latestCategoryNames
      */
-    private void handleUpdatedApplicationCategories(Set<String> latestCategoryNames) {
+    private void handleUpdatedApplicationCategories(List<Category> latestActiveCategories) {
+        Set<String> latestCategoryNames = new HashSet<>(
+            latestActiveCategories.stream().map(category -> category.getName()).toList()
+        );
         Set<String> lastSeenCategoryNames = categoryMap.keySet();
         List<Category> categories = applicationService.getAllCategories(lastSeenApp);
         List<String> newCategoryNames = latestCategoryNames.stream().filter(name -> !lastSeenCategoryNames.contains(name)).toList();
@@ -100,10 +112,10 @@ public class TrackerServiceImpl implements TrackerService {
     }
 
     /**
-     * Reset state variables when a new tracked foregroundApp is detected
+     * Update state variables based on the properties of the new detected foregroundApp
      * @param app
      */
-    private void resetStateVariables(Application app) {
+    private void updateStateVariables(Application app) {
         elapsedSeconds = 0;
         lastSeenApp = app.getTracked() ? app : null;
         startTime = app.getTracked() ? Instant.now() : null;
