@@ -36,7 +36,6 @@ public class ApplicationHasCategory {
     protected ApplicationHasCategory() {}
 
     public ApplicationHasCategory(Application application, Category category) {
-        validateCategory(category);
         this.application = application;
         this.category = category;
         this.pk = new PK(application.getPath(), category.getName());
@@ -63,7 +62,7 @@ public class ApplicationHasCategory {
         deletedAt = time;
     }
     
-    private void validateCategory(Category category) {
+    public static void validateCategory(Category category) {
         if (category.getDeletedAt() != null)
             throw new InactiveCategoryException(category); 
     }

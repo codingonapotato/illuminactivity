@@ -91,6 +91,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     @Transactional 
     public void addCategory(Application target, Category category) {
+        ApplicationHasCategory.validateCategory(category);
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
         ApplicationHasCategory.PK pk = applicationCategory.getPk();
         Optional<ApplicationHasCategory> optional = applicationCategoryRepository.findById(pk);
