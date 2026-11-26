@@ -16,6 +16,10 @@ public interface ApplicationService {
      */
     List<Application> getAllApplications();
 
+    /**
+     * Return the application that is running in the foreground
+     * @return foregroundApplication
+     */
     Application getForegroundApplication();
 
     /**
