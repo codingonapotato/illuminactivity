@@ -30,7 +30,6 @@ public class ProcessServiceImpl implements ProcessService {
         return os.getProcesses(filter, comparator, limit);
     }
 
-    /**TODO: Hoist os as a private member field? */
     @Override 
     public Optional<OSProcess> getForegroundProcess() {
         HWND hwnd = User32.INSTANCE.GetForegroundWindow();
