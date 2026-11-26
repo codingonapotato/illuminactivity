@@ -15,11 +15,14 @@ import oshi.spi.SystemInfoFactory;
 
 @Service 
 public class ProcessServiceImpl implements ProcessService {
-    public ProcessServiceImpl() {};
+    private final OperatingSystem os;
+
+    public ProcessServiceImpl() {
+        os = SystemInfoFactory.create().getOperatingSystem();
+    };
     
     @Override
     public List<OSProcess> getUserProcesses() {
-        OperatingSystem os = SystemInfoFactory.create().getOperatingSystem();
         int limit = 0;
         Predicate<OSProcess> filter = getUserProcessPredicate();
         Comparator<OSProcess> comparator = null;
@@ -30,7 +33,6 @@ public class ProcessServiceImpl implements ProcessService {
     /**TODO: Hoist os as a private member field? */
     @Override 
     public Optional<OSProcess> getForegroundProcess() {
-        OperatingSystem os = SystemInfoFactory.create().getOperatingSystem();
         HWND hwnd = User32.INSTANCE.GetForegroundWindow();
         if (hwnd == null || Pointer.nativeValue(hwnd.getPointer()) == 0) {
             return Optional.empty();
