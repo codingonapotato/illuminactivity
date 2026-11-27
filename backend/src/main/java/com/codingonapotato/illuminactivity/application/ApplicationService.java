@@ -17,11 +17,24 @@ public interface ApplicationService {
     List<Application> getAllApplications();
 
     /**
+     * Return the application that is running in the foreground
+     * @return foregroundApplication
+     */
+    Application getForegroundApplication();
+
+    /**
      * Return a list of active categories with an active application-category pair for the target application
      * @param target
      * @return List of active categories
      */
-    List<Category> getCategories(Application target);
+    List<Category> getActiveCategories(Application target);
+
+    /**
+     * Return a list of all categories for the target application regardless of whether the application-category pair is active
+     * @param target
+     * @return List of active categories
+     */
+    List<Category> getAllCategories(Application target);
 
     /**
      * Create a new relationship between the target application and category

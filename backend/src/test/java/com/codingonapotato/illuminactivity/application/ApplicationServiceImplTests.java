@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -165,7 +166,45 @@ public class ApplicationServiceImplTests {
     }
 
     @Nested
-    class GetCategoriesTests {
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    class GetForegroundApplicationTests {
+
+        @Test
+        @DisplayName("should return the matching persisted application")
+        void shouldReturnMatchingApplication() {
+            Application seedApplication = seedApplications.get(0);
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(seedApplication.getPath());
+            when(mockProcess.getName()).thenReturn(seedApplication.getProductName());
+            when(processService.getForegroundProcess()).thenReturn(Optional.of(mockProcess));
+            when(processService.getUserProcesses()).thenReturn(List.of());
+
+            Application application = applicationService.getForegroundApplication();
+
+            assertEquals(seedApplication, application);
+        }
+
+        @Test
+        @DisplayName("should return an untracked application when the foreground process PID could not be matched to a user application")
+        void shouldReturnUntrackedApplicationForUnknownProcess() {
+            String mockPath = "C:\\Example\\unknown.exe";
+            String mockName = "Unknown";
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(mockPath);
+            when(mockProcess.getName()).thenReturn(mockName);
+            when(processService.getForegroundProcess()).thenReturn(Optional.of(mockProcess));
+            when(processService.getUserProcesses()).thenReturn(List.of());
+
+            Application application = applicationService.getForegroundApplication();
+
+            assertEquals(mockPath, application.getPath());
+            assertEquals(mockName, application.getProductName());
+            assertFalse(application.getTracked());
+        }
+    }
+
+    @Nested
+    class GetActiveCategoriesTests {
 
         @Test
         @DisplayName("should return active application-category pairs")
@@ -183,7 +222,7 @@ public class ApplicationServiceImplTests {
             entityManager.persist(inactiveApplicationCategory);
             entityManager.flush();
 
-            List<Category> categories = applicationService.getCategories(target);
+            List<Category> categories = applicationService.getActiveCategories(target);
             assertEquals(List.of(seedCategory1), categories);
         }
 
@@ -203,8 +242,51 @@ public class ApplicationServiceImplTests {
             entityManager.persist(applicationCategory2);
             entityManager.flush();
 
-            List<Category> categories = applicationService.getCategories(target);
+            List<Category> categories = applicationService.getActiveCategories(target);
             assertEquals(List.of(seedCategories.get(0)), categories);
+        }
+    }
+
+    @Nested
+    class GetAllCategoriesTests {
+
+        @Test
+        @DisplayName("should return active and inactive application-category pairs")
+        void shouldReturnAllApplicationCategoryPairs() {
+            Application target = seedApplications.get(0);
+            Category seedCategory1 = seedCategories.get(0);
+            Category seedCategory2 = seedCategories.get(1);
+
+            ApplicationHasCategory activeApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory1);
+            ApplicationHasCategory inactiveApplicationCategory =
+                new ApplicationHasCategory(target, seedCategory2);
+            inactiveApplicationCategory.setDeletedAt(Instant.now());
+            entityManager.persist(activeApplicationCategory);
+            entityManager.persist(inactiveApplicationCategory);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getAllCategories(target);
+            assertEquals(2, categories.size());
+            assertTrue(categories.contains(seedCategory1));
+            assertTrue(categories.contains(seedCategory2));
+        }
+
+        @Test
+        @DisplayName("should return categories even when the category is soft-deleted")
+        void shouldReturnCategoriesFromSoftDeletedCategory() {
+            Application target = seedApplications.get(0);
+            Category deletedCategory = seedCategories.get(1);
+            ApplicationHasCategory applicationCategory =
+                new ApplicationHasCategory(target, deletedCategory);
+
+            deletedCategory.setDeletedAt(Instant.now());
+            entityManager.persist(deletedCategory);
+            entityManager.persist(applicationCategory);
+            entityManager.flush();
+
+            List<Category> categories = applicationService.getAllCategories(target);
+            assertEquals(List.of(deletedCategory), categories);
         }
     }
 

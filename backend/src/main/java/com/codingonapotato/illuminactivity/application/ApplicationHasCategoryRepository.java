@@ -13,4 +13,12 @@ public interface ApplicationHasCategoryRepository extends JpaRepository<Applicat
         WHERE AC.path = ?1 AND AC.deleted_at IS NULL
         """)
     List<Category> getActiveApplicationCategories(String path);
+
+    @NativeQuery(value = """
+        SELECT Category.*
+        FROM ApplicationHasCategory as AC
+        INNER JOIN Category ON AC.category = Category.name
+        WHERE AC.path = ?1
+        """)
+    List<Category> getAllApplicationCategories(String path);
 }

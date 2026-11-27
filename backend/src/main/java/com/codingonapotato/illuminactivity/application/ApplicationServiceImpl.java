@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -64,13 +65,41 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<Category> getCategories(Application target) {
+    public Application getForegroundApplication() {
+        CompletableFuture<OSProcess> processFuture = CompletableFuture.supplyAsync(processService::getForegroundProcess)
+                                                                        .thenApply(optional -> optional.get());
+        CompletableFuture<List<Application>> applicationsFuture = CompletableFuture.supplyAsync(this::getAllApplications);
+
+        OSProcess process = processFuture.join();
+        List<Application> applications = applicationsFuture.join();
+        String processPath = process.getPath();
+
+        Application foregroundApplication;
+        try {
+            foregroundApplication = applications.stream().filter(a -> a.getPath().equals(processPath))
+                                                        .toList()
+                                                        .getFirst();
+        } catch (NoSuchElementException e) {
+            foregroundApplication = new Application(process.getPath(), process.getName(), false);
+        }
+        
+        return foregroundApplication;
+    }   
+
+    @Override
+    public List<Category> getActiveCategories(Application target) {
         return applicationCategoryRepository.getActiveApplicationCategories(target.getPath());
+    }
+
+    @Override
+    public List<Category> getAllCategories(Application target) {
+        return applicationCategoryRepository.getAllApplicationCategories(target.getPath());
     }
 
     @Override
     @Transactional 
     public void addCategory(Application target, Category category) {
+        ApplicationHasCategory.validateCategory(category);
         ApplicationHasCategory applicationCategory = new ApplicationHasCategory(target, category);
         ApplicationHasCategory.PK pk = applicationCategory.getPk();
         Optional<ApplicationHasCategory> optional = applicationCategoryRepository.findById(pk);
