@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -161,6 +162,44 @@ public class ApplicationServiceImplTests {
         
             assertTrue(copySeedApplications.size() == applications.size());
             assertEquals(copySeedApplications, applications);
+        }
+    }
+
+    @Nested
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    class GetForegroundApplicationTests {
+
+        @Test
+        @DisplayName("should return the matching persisted application")
+        void shouldReturnMatchingApplication() {
+            Application seedApplication = seedApplications.get(0);
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(seedApplication.getPath());
+            when(mockProcess.getName()).thenReturn(seedApplication.getProductName());
+            when(processService.getForegroundProcess()).thenReturn(Optional.of(mockProcess));
+            when(processService.getUserProcesses()).thenReturn(List.of());
+
+            Application application = applicationService.getForegroundApplication();
+
+            assertEquals(seedApplication, application);
+        }
+
+        @Test
+        @DisplayName("should return an untracked application when the foreground process PID could not be matched to a user application")
+        void shouldReturnUntrackedApplicationForUnknownProcess() {
+            String mockPath = "C:\\Example\\unknown.exe";
+            String mockName = "Unknown";
+            OSProcess mockProcess = mock(OSProcess.class);
+            when(mockProcess.getPath()).thenReturn(mockPath);
+            when(mockProcess.getName()).thenReturn(mockName);
+            when(processService.getForegroundProcess()).thenReturn(Optional.of(mockProcess));
+            when(processService.getUserProcesses()).thenReturn(List.of());
+
+            Application application = applicationService.getForegroundApplication();
+
+            assertEquals(mockPath, application.getPath());
+            assertEquals(mockName, application.getProductName());
+            assertFalse(application.getTracked());
         }
     }
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -73,9 +74,16 @@ public class ApplicationServiceImpl implements ApplicationService {
         List<Application> applications = applicationsFuture.join();
         String processPath = process.getPath();
 
-        return applications.stream().filter(a -> a.getPath().equals(processPath))
-                                    .toList()
-                                    .getFirst();
+        Application foregroundApplication;
+        try {
+            foregroundApplication = applications.stream().filter(a -> a.getPath().equals(processPath))
+                                                        .toList()
+                                                        .getFirst();
+        } catch (NoSuchElementException e) {
+            foregroundApplication = new Application(process.getPath(), process.getName(), false);
+        }
+        
+        return foregroundApplication;
     }   
 
     @Override
